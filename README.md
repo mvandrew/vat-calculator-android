@@ -1,6 +1,6 @@
 # Калькулятор НДС — Android
 
-Существующая заготовка с обновлёнными зависимостями. Реализация приложения, Activity, переход XML-тем на Compose, идентификатор выпуска, backup и release signing выполняются отдельной задачей по ТЗ workspace `tasks/01-android-release/technical-specification.md`.
+Новая реализация по ТЗ workspace `tasks/01-android-release/technical-specification.md`. Выполнена фаза 02: запускаемый Compose-проект. Расчётное ядро, хранение, миграция и рабочие экраны реализуются в следующих фазах.
 
 ## Сборка
 
@@ -22,10 +22,20 @@ export ANDROID_HOME="$HOME/Library/Android/sdk"
 
 Kotlin 2.4.20 используется с более новыми AGP/Gradle, чем верхняя граница его таблицы полной совместимости. Версии выбраны явно и проверяются сборкой и lint; предупреждения несовместимости не подавляются.
 
-Встроенный Kotlin AGP сохранён; KGP обновляется через buildscript classpath без `org.jetbrains.kotlin.android`. Compose Compiler и зависимости подключены для предстоящей реализации ТЗ. AppCompat и Material Components пока нужны существующим XML-темам; их удаление относится к переходу UI на Compose. Debug tooling не входит в release.
+Встроенный Kotlin AGP сохранён; KGP обновляется через buildscript classpath без `org.jetbrains.kotlin.android`. Аналитических, рекламных и платёжных SDK нет. Debug tooling не входит в release.
 
-Стартовой Activity и кода калькулятора пока нет. Существующий шаблонный unit-тест не подтверждает расчёты. `applicationId = ru.msav.vatcalculator` и версии `1 / 1.0` остаются исходными техническими значениями, не конфигурацией выпуска в существующую карточку Google Play.
+## Конфигурация выпуска
 
-## Проверка обновления — 16 сентября 2026
+- `applicationId = ru.msav.ruvattaxcalculator` — пакет существующей карточки Google Play (ТЗ, идентичность выпуска).
+- Внутренний `namespace = ru.msav.vatcalculator` сохранён; классы остаются в этом пакете.
+- `versionName = 3.0` — пользовательская версия нового выпуска. `versionCode = 1` — техническое значение; окончательный код назначается в фазе 07 после сверки всех кодов в Play Console.
+- Подписание release и публикация не настроены; выполняются в фазе 07.
 
-Debug/release APK, release AAB, компиляция instrumentation-тестов, существующий unit-тест и оба Lint прошли на JBR 25.0.3. Проверка относится к заготовке с обновлёнными зависимостями; готовность UI и выполнение фаз ТЗ не подтверждаются. Исходники, manifest, ресурсы и тесты в рамках итогового изменения не изменены.
+## Структура (фаза 02)
+
+- `MainActivity` — launcher Activity, Compose `setContent`.
+- `ui/theme/Theme.kt` — Material 3, светлая/тёмная схема по системной теме.
+- `ui/screens/` — каркасы четырёх экранов: `CalculatorScreen`, `HistoryScreen`, `SettingsScreen`, `AboutScreen` (заглушки без бизнес-логики).
+- Пакеты расчётного ядра, состояния и журнала появятся в фазах 03–04 вместе с реализацией.
+
+XML-темы MaterialComponents, AppCompat и Material Components удалены при переходе UI на Compose. Проверка обновления заготовки от 16 сентября 2026 к прежнему составу зависимостей не применяется к текущей конфигурации; актуальные результаты проверок — в отчёте фазы 02 workspace.

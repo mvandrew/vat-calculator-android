@@ -13,12 +13,15 @@ android {
     buildToolsVersion = "37.0.0"
 
     defaultConfig {
-        applicationId = "ru.msav.vatcalculator"
+        // Release identity of the existing Play listing; internal namespace stays ru.msav.vatcalculator.
+        applicationId = "ru.msav.ruvattaxcalculator"
         minSdk = 24
         targetSdk = 37
-        // Development values; assign release versions after checking Play Console.
+        // versionName 3.0 is the owner-approved user-visible release version.
+        // versionCode is a development value; assign the release code in phase 07
+        // after re-checking all codes uploaded to Play Console (max known is 9).
         versionCode = 1
-        versionName = "1.0"
+        versionName = "3.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -49,8 +52,6 @@ kotlin {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)

@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">VAT Calculator</string>
+    <string name="screen_calculator">VAT Calculator</string>
+    <string name="screen_history">History</string>
+    <string name="screen_settings">Settings</string>
+    <string name="screen_about">About</string>
 </resources>
