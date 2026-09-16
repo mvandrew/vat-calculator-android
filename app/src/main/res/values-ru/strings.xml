@@ -1,0 +1,48 @@
+<resources>
+    <string name="app_name">Калькулятор НДС</string>
+    <string name="screen_calculator">Калькулятор НДС</string>
+    <string name="screen_history">Журнал</string>
+    <string name="screen_settings">Настройки</string>
+    <string name="screen_about">О программе</string>
+
+    <string name="label_amount_exclusive">Сумма без НДС</string>
+    <string name="label_amount_inclusive">Сумма с НДС</string>
+    <string name="label_rate">Ставка НДС, %</string>
+    <string name="mode_add">Начислить</string>
+    <string name="mode_extract">Выделить</string>
+
+    <string name="result_base">Без НДС</string>
+    <string name="result_vat">НДС</string>
+    <string name="result_total">С НДС</string>
+    <string name="result_empty">—</string>
+
+    <string name="button_save">Сохранить</string>
+    <string name="button_new_calculation">Новый расчёт</string>
+    <string name="save_saved">Сохранено</string>
+    <string name="save_failed">Не удалось сохранить; ввод сохранён</string>
+
+    <string name="error_too_long">Не больше 64 символов</string>
+    <string name="error_wrong_format">Введите число: только цифры и один десятичный разделитель</string>
+    <string name="error_grouping">Используйте пробелы между тысячами: 1 234,56</string>
+    <string name="error_precision_amount">Не больше двух знаков после разделителя</string>
+    <string name="error_precision_rate">Не больше четырёх знаков после разделителя</string>
+    <string name="error_range_amount">Введите значение от 0 до 999 999 999 999,99</string>
+    <string name="error_range_rate">Ставка должна быть от 0% до менее 100%</string>
+
+    <string name="discard_title">Сбросить изменения?</string>
+    <string name="discard_text">Несохранённые данные текущего расчёта будут потеряны. Сохранённый журнал не затрагивается.</string>
+    <string name="discard_confirm">Сбросить</string>
+    <string name="discard_cancel">Отмена</string>
+
+    <string name="migration_prefs_title">Перенос данных</string>
+    <string name="migration_from_22">Данные перенесены из версии 2.2.</string>
+    <string name="migration_from_15">Данные перенесены из версии 1.5.</string>
+    <string name="migration_amount_rounded">Сумма приведена округлением к двум знакам.</string>
+    <string name="migration_rate_rounded">Ставка приведена округлением к четырём знакам.</string>
+    <string name="migration_amount_invalid">Перенесённая сумма некорректна; введите её заново.</string>
+    <string name="migration_rate_invalid">Перенесённая ставка некорректна; введите её заново.</string>
+    <string name="migration_mode_invalid">Перенесённый режим некорректен; выберите его заново.</string>
+    <string name="migration_journal_title">Перенос журнала</string>
+    <string name="migration_journal_summary">Перенесено: %1$d, округлено: %2$d, пропущено: %3$d.</string>
+    <string name="migration_ok">Понятно</string>
+</resources>
