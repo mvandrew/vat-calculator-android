@@ -45,4 +45,35 @@
     <string name="migration_journal_title">Перенос журнала</string>
     <string name="migration_journal_summary">Перенесено: %1$d, округлено: %2$d, пропущено: %3$d.</string>
     <string name="migration_ok">Понятно</string>
+
+    <string name="button_share">Поделиться</string>
+    <string name="share_via">Поделиться расчётом</string>
+    <string name="share_no_app">Нет приложения для отправки</string>
+    <string name="nav_back">Назад</string>
+
+    <string name="settings_theme_label">Тема</string>
+    <string name="settings_theme_system">Как в системе</string>
+    <string name="settings_theme_light">Светлая</string>
+    <string name="settings_theme_dark">Тёмная</string>
+    <string name="settings_language_label">Язык</string>
+    <string name="settings_language_system">Как в системе</string>
+    <string name="settings_language_russian">Русский</string>
+    <string name="settings_language_english">English</string>
+
+    <string name="history_empty">Нет сохранённых расчётов</string>
+    <string name="history_back_to_calculator">К калькулятору</string>
+    <string name="history_delete">Удалить</string>
+    <string name="history_delete_title">Удалить запись?</string>
+    <string name="history_delete_text">Запись будет удалена из журнала.</string>
+    <string name="history_delete_failed">Не удалось удалить запись</string>
+    <string name="history_open_entry">Открыть запись</string>
+
+    <string name="about_version">Версия: %1$s</string>
+    <string name="about_author">© 2026 Андрей Мищенко</string>
+    <string name="about_site">Сайт</string>
+    <string name="about_feedback">Обратная связь</string>
+    <string name="about_privacy">Политика конфиденциальности</string>
+    <string name="about_feedback_subject">Калькулятор НДС (Android)</string>
+    <string name="external_no_browser">Нет браузерного приложения</string>
+    <string name="external_no_email">Нет почтового приложения</string>
 </resources>

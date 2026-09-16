@@ -5,13 +5,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import ru.msav.vatcalculator.storage.ThemeSetting
+import ru.msav.vatcalculator.ui.resolveTheme
 
 @Composable
 fun VATCalculatorTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    themeSetting: ThemeSetting = ThemeSetting.SYSTEM,
     content: @Composable () -> Unit,
 ) {
-    val colorScheme = if (darkTheme) darkColorScheme() else lightColorScheme()
+    val colorScheme =
+        if (resolveTheme(themeSetting, isSystemInDarkTheme())) darkColorScheme() else lightColorScheme()
     MaterialTheme(
         colorScheme = colorScheme,
         content = content,

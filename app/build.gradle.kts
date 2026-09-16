@@ -27,6 +27,8 @@ android {
 
     buildFeatures {
         compose = true
+        // Фактическая версия сборки для экрана «О программе» (interface.md §4.3).
+        buildConfig = true
     }
 
     buildTypes {

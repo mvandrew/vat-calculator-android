@@ -1,5 +1,6 @@
 package ru.msav.vatcalculator.ui.screens
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -29,6 +30,7 @@ import ru.msav.vatcalculator.calculation.VatMode
 import ru.msav.vatcalculator.storage.AppStateStore
 import ru.msav.vatcalculator.storage.HistoryStore
 import ru.msav.vatcalculator.storage.legacy.StateMigrator
+import ru.msav.vatcalculator.ui.LocalAppLanguage
 import ru.msav.vatcalculator.ui.theme.VATCalculatorTheme
 import java.io.File
 import java.math.BigDecimal
@@ -76,7 +78,14 @@ class CalculatorScreenTest {
         )
         composeRule.setContent {
             VATCalculatorTheme {
-                CalculatorScreen(viewModel = viewModel)
+                CompositionLocalProvider(LocalAppLanguage provides language) {
+                    CalculatorScreen(
+                        viewModel = viewModel,
+                        onOpenHistory = {},
+                        onOpenSettings = {},
+                        onOpenAbout = {},
+                    )
+                }
             }
         }
         composeRule.waitUntil(5_000) { viewModel.uiState.value.loaded }
@@ -115,6 +124,14 @@ class CalculatorScreenTest {
             composeRule.onAllNodesWithText(string(R.string.result_empty)).fetchSemanticsNodes().size,
         )
         composeRule.onNodeWithText(string(R.string.button_save)).assertIsNotEnabled()
+        composeRule.onNodeWithText(string(R.string.button_share)).assertIsNotEnabled()
+    }
+
+    @Test
+    fun navigationButtonsAreShown() {
+        composeRule.onNodeWithText(string(R.string.screen_history)).assertExists()
+        composeRule.onNodeWithText(string(R.string.screen_settings)).assertExists()
+        composeRule.onNodeWithText(string(R.string.screen_about)).assertExists()
     }
 
     @Test
@@ -170,5 +187,24 @@ class CalculatorScreenTest {
         assertEquals(1, historyStore.list().size)
         composeRule.waitUntil(5_000) { viewModel.uiState.value.openEntryId != null }
         assertTrue(historyStore.list().first().id == viewModel.uiState.value.openEntryId)
+    }
+
+    @Test
+    fun shareButtonBuildsShareTextForValidInput() = runBlocking {
+        enterAmount("100")
+        composeRule.waitUntil(5_000) { viewModel.uiState.value.canSave }
+
+        composeRule.onNodeWithText(string(R.string.button_share)).performClick()
+        composeRule.waitUntil(5_000) { viewModel.uiState.value.shareText != null }
+        // Текст построен по шаблону фазы 03 без пересчёта и без валютных обозначений.
+        val shareText = viewModel.uiState.value.shareText!!
+        val total = MoneyFormatter.formatMoney(
+            VatCalculator.calculate(CalculationInput(BigDecimal("100"), BigDecimal("22"), VatMode.INCLUSIVE)).total,
+            language,
+        )
+        assertTrue(shareText.contains(total))
+        assertTrue(!shareText.contains("₽"))
+        assertTrue(!shareText.contains("RUB"))
+        assertTrue(!shareText.contains("$"))
     }
 }

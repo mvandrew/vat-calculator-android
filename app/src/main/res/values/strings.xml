@@ -45,4 +45,35 @@
     <string name="migration_journal_title">History transfer</string>
     <string name="migration_journal_summary">Imported: %1$d, rounded: %2$d, skipped: %3$d.</string>
     <string name="migration_ok">Got it</string>
+
+    <string name="button_share">Share</string>
+    <string name="share_via">Share calculation</string>
+    <string name="share_no_app">No app available for sharing</string>
+    <string name="nav_back">Back</string>
+
+    <string name="settings_theme_label">Theme</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_language_label">Language</string>
+    <string name="settings_language_system">System</string>
+    <string name="settings_language_russian">Русский</string>
+    <string name="settings_language_english">English</string>
+
+    <string name="history_empty">No saved calculations yet</string>
+    <string name="history_back_to_calculator">Back to calculator</string>
+    <string name="history_delete">Delete</string>
+    <string name="history_delete_title">Delete entry?</string>
+    <string name="history_delete_text">The entry will be removed from the history.</string>
+    <string name="history_delete_failed">Could not delete the entry</string>
+    <string name="history_open_entry">Open entry</string>
+
+    <string name="about_version">Version: %1$s</string>
+    <string name="about_author">© 2026 Andrey Mishchenko</string>
+    <string name="about_site">Website</string>
+    <string name="about_feedback">Feedback</string>
+    <string name="about_privacy">Privacy policy</string>
+    <string name="about_feedback_subject">VAT Calculator (Android)</string>
+    <string name="external_no_browser">No browser app available</string>
+    <string name="external_no_email">No email app available</string>
 </resources>

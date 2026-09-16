@@ -17,10 +17,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import ru.msav.vatcalculator.calculation.AppLanguage
 import ru.msav.vatcalculator.calculation.ParseError
 import ru.msav.vatcalculator.calculation.VatMode
 import ru.msav.vatcalculator.storage.AppStateStore
 import ru.msav.vatcalculator.storage.HistoryStore
+import ru.msav.vatcalculator.storage.LanguageSetting
+import ru.msav.vatcalculator.storage.ThemeSetting
 import ru.msav.vatcalculator.storage.legacy.StateMigrator
 import java.io.File
 
@@ -274,5 +277,204 @@ class CalculatorViewModelTest {
         assertNotNull(state.results)
         // 999 999 999 999,99 × 1,22 — восстановленное значение и режим дают тот же расчёт.
         assertEquals("1219999999999.99", state.results!!.total.toPlainString())
+    }
+
+    // --- Фаза 06: настройки, журнал, отправка ---
+
+    @Test
+    fun settingsApplyImmediatelyAndPersist() = runBlocking {
+        val model = createViewModel()
+        awaitState { it.loaded }
+
+        model.onThemeChange(ThemeSetting.DARK)
+        model.onLanguageChange(LanguageSetting.RUSSIAN)
+        assertEquals(ThemeSetting.DARK, model.settingsState.value.themeSetting)
+        assertEquals(LanguageSetting.RUSSIAN, model.settingsState.value.languageSetting)
+
+        // Запись выполняется вне главного потока: ждём её появления в хранилище.
+        withTimeout(5_000) {
+            while (appStateStore.load()?.languageSetting != LanguageSetting.RUSSIAN) {
+                kotlinx.coroutines.delay(50)
+            }
+        }
+        val stored = appStateStore.load()
+        assertNotNull(stored)
+        assertEquals(ThemeSetting.DARK, stored!!.themeSetting)
+        assertEquals(LanguageSetting.RUSSIAN, stored.languageSetting)
+    }
+
+    @Test
+    fun settingsSurviveNewViewModelAndKeepUnfinishedInput() = runBlocking {
+        val first = createViewModel()
+        awaitState { it.loaded }
+        first.onAmountChange("100,")
+        first.onThemeChange(ThemeSetting.LIGHT)
+        first.onLanguageChange(LanguageSetting.ENGLISH)
+        kotlinx.coroutines.delay(700)
+
+        val second = createViewModel()
+        awaitState { it.loaded }
+        assertEquals(ThemeSetting.LIGHT, second.settingsState.value.themeSetting)
+        assertEquals(LanguageSetting.ENGLISH, second.settingsState.value.languageSetting)
+        // Смена настроек не меняет незавершённый ввод (interface.md §4.2).
+        assertEquals("100,", second.uiState.value.amountText)
+    }
+
+    @Test
+    fun shareFinalizesInputAndBuildsRussianText() = runBlocking {
+        val model = createViewModel()
+        awaitState { it.loaded }
+        model.onAmountChange("12,")
+        model.share(AppLanguage.RUSSIAN)
+        val state = model.uiState.value
+        assertEquals("12", state.amountText)
+        assertEquals("Без НДС: 9,84\nНДС (22%): 2,16\nС НДС: 12,00", state.shareText)
+
+        model.consumeShareText()
+        assertNull(model.uiState.value.shareText)
+    }
+
+    @Test
+    fun shareBlockedWithoutReadyResult() = runBlocking {
+        val model = createViewModel()
+        awaitState { it.loaded }
+        model.share(AppLanguage.ENGLISH)
+        assertNull(model.uiState.value.shareText)
+
+        model.onAmountChange("100,005")
+        model.share(AppLanguage.ENGLISH)
+        assertNull(model.uiState.value.shareText)
+        assertNotNull(model.uiState.value.amountError)
+    }
+
+    @Test
+    fun historyRefreshesAfterSave() = runBlocking {
+        val model = createViewModel()
+        awaitState { it.loaded }
+        model.onAmountChange("100")
+        model.save()
+        awaitHistory { it.entries.size == 1 }
+    }
+
+    @Test
+    fun openEntryLoadsFormAndNextSaveUpdatesSameId() = runBlocking {
+        val model = createViewModel()
+        awaitState { it.loaded }
+        model.onAmountChange("100")
+        model.onModeChange(VatMode.EXCLUSIVE)
+        model.save()
+        awaitState { it.openEntryId != null }
+        val id = model.uiState.value.openEntryId!!
+
+        model.newCalculation()
+        awaitState { it.amountText == "" }
+        val entry = historyStore.get(id)!!
+        model.onHistoryEntryClick(entry)
+        awaitState { it.openEntryId == id }
+        val opened = model.uiState.value
+        assertEquals("100", opened.amountText)
+        assertEquals("22", opened.rateText)
+        assertEquals(VatMode.EXCLUSIVE, opened.mode)
+        assertFalse(opened.hasUnsavedChanges)
+
+        model.onAmountChange("200")
+        model.save()
+        awaitState { it.saveNotice == CalculatorViewModel.SaveNotice.SAVED }
+        assertEquals(1, historyStore.list().size)
+        assertEquals(0, historyStore.get(id)!!.amount.compareTo(java.math.BigDecimal("200")))
+    }
+
+    @Test
+    fun openEntryRequiresConfirmationOnlyWhenDirty() = runBlocking {
+        val model = createViewModel()
+        awaitState { it.loaded }
+        model.onAmountChange("100")
+        model.save()
+        awaitState { it.openEntryId != null }
+        val entry = historyStore.get(model.uiState.value.openEntryId!!)!!
+
+        model.onAmountChange("555")
+        model.onHistoryEntryClick(entry)
+        assertNotNull(model.uiState.value.confirmOpenEntry)
+        // До подтверждения форма не заменяется; отмена сохраняет текущий ввод.
+        assertEquals("555", model.uiState.value.amountText)
+        model.dismissOpenEntry()
+        assertNull(model.uiState.value.confirmOpenEntry)
+        assertEquals("555", model.uiState.value.amountText)
+
+        model.onHistoryEntryClick(entry)
+        model.confirmOpenEntry()
+        awaitState { it.amountText == "100" }
+        assertEquals(entry.id, model.uiState.value.openEntryId)
+        assertFalse(model.uiState.value.hasUnsavedChanges)
+    }
+
+    @Test
+    fun deleteRequiresConfirmationCancelKeepsEntry() = runBlocking {
+        val model = createViewModel()
+        awaitState { it.loaded }
+        model.onAmountChange("100")
+        model.save()
+        awaitState { it.openEntryId != null }
+        val id = model.uiState.value.openEntryId!!
+
+        model.requestDeleteEntry(id)
+        assertEquals(id, model.historyState.value.confirmDeleteId)
+        model.dismissDeleteEntry()
+        assertNull(model.historyState.value.confirmDeleteId)
+        assertEquals(1, historyStore.list().size)
+    }
+
+    @Test
+    fun deleteOpenEntryKeepsFieldsAndNextSaveCreatesNew() = runBlocking {
+        val model = createViewModel()
+        awaitState { it.loaded }
+        model.onAmountChange("100")
+        model.save()
+        awaitState { it.openEntryId != null }
+        val id = model.uiState.value.openEntryId!!
+
+        model.requestDeleteEntry(id)
+        model.confirmDeleteEntry()
+        awaitHistory { it.entries.isEmpty() }
+        // Поля остаются без связи с ID; следующее сохранение создаёт новую запись.
+        assertEquals("100", model.uiState.value.amountText)
+        assertNull(model.uiState.value.openEntryId)
+
+        model.save()
+        awaitState { it.openEntryId != null && it.openEntryId != id }
+        assertEquals(1, historyStore.list().size)
+    }
+
+    @Test
+    fun deleteFailureKeepsEntryAndNotifies() = runBlocking {
+        val failingStore = object : HistoryStore(context) {
+            override suspend fun delete(id: Long): Boolean =
+                throw android.database.sqlite.SQLiteException("storage failure")
+        }
+        val model = CalculatorViewModel(appStateStore, failingStore, migrator, testScope)
+        viewModel = model
+        awaitState { it.loaded }
+        failingStore.insert(java.math.BigDecimal("100"), java.math.BigDecimal("22"), VatMode.INCLUSIVE)
+        model.refreshHistory()
+        awaitHistory { it.entries.size == 1 }
+        val id = model.historyState.value.entries.first().id
+
+        model.requestDeleteEntry(id)
+        model.confirmDeleteEntry()
+        awaitHistory { it.deleteFailed }
+        // Ошибка хранилища: запись остаётся на месте (interface.md §4.4).
+        assertEquals(1, failingStore.list().size)
+
+        model.consumeDeleteNotice()
+        assertFalse(model.historyState.value.deleteFailed)
+    }
+
+    private suspend fun awaitHistory(predicate: (CalculatorViewModel.HistoryState) -> Boolean) {
+        withTimeout(5_000) {
+            while (!predicate(viewModel!!.historyState.value)) {
+                kotlinx.coroutines.delay(50)
+            }
+        }
     }
 }
