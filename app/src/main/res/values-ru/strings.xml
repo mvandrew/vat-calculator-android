@@ -52,11 +52,11 @@
     <string name="nav_back">Назад</string>
 
     <string name="settings_theme_label">Тема</string>
-    <string name="settings_theme_system">Как в системе</string>
+    <string name="settings_theme_system">Системная</string>
     <string name="settings_theme_light">Светлая</string>
     <string name="settings_theme_dark">Тёмная</string>
     <string name="settings_language_label">Язык</string>
-    <string name="settings_language_system">Как в системе</string>
+    <string name="settings_language_system">Системный</string>
     <string name="settings_language_russian">Русский</string>
     <string name="settings_language_english">English</string>
 
