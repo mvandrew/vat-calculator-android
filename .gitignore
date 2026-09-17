@@ -77,3 +77,20 @@ $RECYCLE.BIN/
 node_modules/
 package-lock.json
 
+# Сборочные артефакты и бинарные сборки
+build/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.hprof
+/app/release/
+
+# Ключи подписи и хранилища (в проект не коммитятся)
+*.jks
+*.keystore
+keystore.properties
+
+# Kotlin build-кэш
+.kotlin/
+
