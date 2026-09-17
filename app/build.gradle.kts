@@ -19,7 +19,7 @@ android {
         targetSdk = 36
         // versionName 3.0 is the owner-approved user-visible release version.
         // Play Console re-check on 2026-09-17: the highest uploaded code is 9 (version 2.2).
-        versionCode = 12
+        versionCode = 13
         versionName = "3.0"
     }
 
