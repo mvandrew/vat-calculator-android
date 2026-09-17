@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Exact cleaned export of Figma node 5:56 (Adaptive Background). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="108" height="108">
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="108" y2="108" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF8A32"/>
+      <stop offset="1" stop-color="#F15C2A"/>
+    </linearGradient>
+  </defs>
+  <rect width="108" height="108" fill="url(#background)"/>
+</svg>

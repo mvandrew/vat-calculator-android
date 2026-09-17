@@ -1,30 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Derived from Figma node 5:59 (Adaptive Foreground). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:endX="85.84757"
-                android:endY="92.4963"
-                android:startX="42.9492"
-                android:startY="49.59793"
-                android:type="linear">
-                <item
-                    android:color="#44000000"
-                    android:offset="0.0" />
-                <item
-                    android:color="#00000000"
-                    android:offset="1.0" />
-            </gradient>
-        </aapt:attr>
-    </path>
-    <path
-        android:fillColor="#FFFFFF"
-        android:fillType="nonZero"
-        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"
-        android:strokeWidth="1"
-        android:strokeColor="#00000000" />
+    <group android:translateX="21" android:translateY="21">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M14.0224,14.0224H51.9777V51.9777H14.0224Z" />
+        <path
+            android:fillType="evenOdd"
+            android:pathData="M30.5399,1.019C31.8986,-0.339656 34.1015,-0.339677 35.4603,1.019L43.1755,8.73422H53.9163C55.8378,8.73426 57.3954,10.292 57.3954,12.2135V22.9541L64.968,30.5268C66.3268,31.8855 66.3267,34.0885 64.968,35.4473L57.3954,43.0198V53.9438C57.3954,55.8653 55.8377,57.423 53.9162,57.423H42.9923L35.4603,64.9551C34.1015,66.3138 31.8986,66.3138 30.5399,64.9551L23.0078,57.423H12.1859C10.2644,57.423 8.70665,55.8653 8.70665,53.9438L8.70655,43.1217L1.03199,35.4472C-0.326661,34.0884 -0.326708,31.8855 1.03199,30.5268L8.70655,22.8521L8.70665,12.2135C8.70669,10.292 10.2644,8.73422 12.1859,8.73422H22.8247L30.5399,1.019ZM45.032,40.1694C42.1468,40.1695 39.8079,42.5083 39.8079,45.3935C39.8079,48.2787 42.1468,50.6176 45.032,50.6176C47.9172,50.6176 50.2562,48.2787 50.2562,45.3935C50.2562,42.5083 47.9172,40.1694 45.032,40.1694ZM15.7769,46.4947V50.3994H19.2604L50.2561,19.4036L50.2562,15.9202H46.3515L15.7769,46.4947ZM21.001,15.9201C18.1159,15.9201 15.777,18.2591 15.7769,21.1442C15.7769,24.0294 18.1158,26.3684 21.001,26.3684C23.8862,26.3684 26.2251,24.0294 26.2251,21.1442C26.2251,18.2591 23.8862,15.9201 21.001,15.9201Z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:startX="0.0129852"
+                    android:startY="32.987"
+                    android:endX="65.9871"
+                    android:endY="32.987"
+                    android:type="linear">
+                    <item android:offset="0" android:color="#FF72C943" />
+                    <item android:offset="1" android:color="#FF49A815" />
+                </gradient>
+            </aapt:attr>
+        </path>
+    </group>
 </vector>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 960" width="1080" height="960">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="108" y2="108" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF8A32"/><stop offset="1" stop-color="#F15C2A"/>
+    </linearGradient>
+    <linearGradient id="green" x1="21.013" y1="54" x2="86.987" y2="54" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#72C943"/><stop offset="1" stop-color="#49A815"/>
+    </linearGradient>
+    <clipPath id="circle"><circle cx="54" cy="54" r="54"/></clipPath>
+    <clipPath id="squircle"><rect width="108" height="108" rx="25"/></clipPath>
+    <clipPath id="rounded"><rect width="108" height="108" rx="15"/></clipPath>
+    <g id="fullIcon">
+      <rect width="108" height="108" fill="url(#bg)"/>
+      <rect x="35.0224" y="35.0224" width="37.9553" height="37.9553" fill="#FFFFFF"/>
+      <path fill="url(#green)" fill-rule="evenodd" clip-rule="evenodd" d="M51.5437 21.996C52.9006 20.6391 55.0994 20.6391 56.4563 21.996L64.1604 29.7H74.8827C76.8012 29.7001 78.3564 31.2553 78.3564 33.1737V43.8959L85.9179 51.4575C87.2748 52.8144 87.2748 55.0133 85.9179 56.3703L78.3564 63.9317V74.8368C78.3564 76.7554 76.8011 78.3106 74.8826 78.3106H63.9776L56.4563 85.8318C55.0994 87.1887 52.9006 87.1887 51.5437 85.8318L44.0224 78.3106H33.2199C31.3014 78.3106 29.7462 76.7554 29.7462 74.8368L29.7461 64.0344L22.085 56.3702C20.7282 55.0132 20.7281 52.8144 22.085 51.4575L29.7461 43.7941L29.7462 33.1737C29.7463 31.2552 31.3014 29.7 33.2199 29.7H43.8399L51.5437 21.996ZM66.013 61.0885C63.1331 61.0885 60.7983 63.4234 60.7983 66.3033C60.7983 69.1832 63.1331 71.518 66.013 71.518C68.8929 71.518 71.2278 69.1832 71.2278 66.3033C71.2278 63.4234 68.8929 61.0885 66.013 61.0885ZM36.8107 67.3994V71.2961H40.287L71.2277 40.3554V36.8791H67.331L36.8107 67.3994ZM42.0227 36.879C39.1428 36.879 36.8079 39.2138 36.8079 42.0937C36.8079 44.9736 39.1428 47.3085 42.0227 47.3085C44.9026 47.3085 47.2374 44.9736 47.2374 42.0937C47.2374 39.2138 44.9026 36.879 42.0227 36.879Z"/>
+    </g>
+    <path id="monoSymbol" fill-rule="evenodd" clip-rule="evenodd" d="M51.5437 21.996C52.9006 20.6391 55.0994 20.6391 56.4563 21.996L64.1604 29.7H74.8827C76.8012 29.7001 78.3564 31.2553 78.3564 33.1737V43.8959L85.9179 51.4575C87.2748 52.8144 87.2748 55.0133 85.9179 56.3703L78.3564 63.9317V74.8368C78.3564 76.7554 76.8011 78.3106 74.8826 78.3106H63.9776L56.4563 85.8318C55.0994 87.1887 52.9006 87.1887 51.5437 85.8318L44.0224 78.3106H33.2199C31.3014 78.3106 29.7462 76.7554 29.7462 74.8368L29.7461 64.0344L22.085 56.3702C20.7282 55.0132 20.7281 52.8144 22.085 51.4575L29.7461 43.7941L29.7462 33.1737C29.7463 31.2552 31.3014 29.7 33.2199 29.7H43.8399L51.5437 21.996ZM66.013 61.0885C63.1331 61.0885 60.7983 63.4234 60.7983 66.3033C60.7983 69.1832 63.1331 71.518 66.013 71.518C68.8929 71.518 71.2278 69.1832 71.2278 66.3033C71.2278 63.4234 68.8929 61.0885 66.013 61.0885ZM36.8107 67.3994V71.2961H40.287L71.2277 40.3554V36.8791H67.331L36.8107 67.3994ZM42.0227 36.879C39.1428 36.879 36.8079 39.2138 36.8079 42.0937C36.8079 44.9736 39.1428 47.3085 42.0227 47.3085C44.9026 47.3085 47.2374 44.9736 47.2374 42.0937C47.2374 39.2138 44.9026 36.879 42.0227 36.879Z"/>
+  </defs>
+  <rect width="1080" height="960" fill="#F7F7F9"/>
+  <g font-family="Arial, sans-serif" text-anchor="middle" fill="#1E1E1E">
+    <text x="164" y="60" font-size="28">Square</text><g transform="translate(40 90) scale(2.3)"><use href="#fullIcon"/></g>
+    <text x="504" y="60" font-size="28">Circle</text><g transform="translate(380 90) scale(2.3)" clip-path="url(#circle)"><use href="#fullIcon"/></g>
+    <text x="844" y="60" font-size="28">Squircle</text><g transform="translate(720 90) scale(2.3)" clip-path="url(#squircle)"><use href="#fullIcon"/></g>
+    <text x="164" y="535" font-size="28">Rounded square</text><g transform="translate(40 565) scale(2.3)" clip-path="url(#rounded)"><use href="#fullIcon"/></g>
+    <text x="504" y="535" font-size="28">Themed — light</text>
+    <g transform="translate(380 565) scale(2.3)" clip-path="url(#squircle)"><rect width="108" height="108" fill="#DDE5DA"/><use href="#monoSymbol" fill="#35513A"/></g>
+    <text x="844" y="535" font-size="28">Themed — dark</text>
+    <g transform="translate(720 565) scale(2.3)" clip-path="url(#squircle)"><rect width="108" height="108" fill="#253329"/><use href="#monoSymbol" fill="#B8D8B7"/></g>
+  </g>
+</svg>
