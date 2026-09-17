@@ -114,13 +114,19 @@ fun CalculatorScreenContent(
     val chooserTitle = appString(R.string.share_via)
     val language = LocalAppLanguage.current
 
-    LaunchedEffect(state.saveNotice) {
-        when (state.saveNotice) {
-            CalculatorViewModel.SaveNotice.SAVED -> snackbarHostState.showSnackbar(savedText)
-            CalculatorViewModel.SaveNotice.SAVE_FAILED -> snackbarHostState.showSnackbar(failedText)
-            null -> Unit
+    val saveNotice = state.saveNotice
+    LaunchedEffect(saveNotice) {
+        if (saveNotice == null) return@LaunchedEffect
+        try {
+            when (saveNotice) {
+                CalculatorViewModel.SaveNotice.SAVED -> snackbarHostState.showSnackbar(savedText)
+                CalculatorViewModel.SaveNotice.SAVE_FAILED -> snackbarHostState.showSnackbar(failedText)
+            }
+        } finally {
+            // Навигация может удалить экран из композиции до завершения Snackbar.
+            // Поглощаем одноразовое событие и при штатном завершении, и при отмене эффекта.
+            onConsumeSaveNotice()
         }
-        onConsumeSaveNotice()
     }
 
     LaunchedEffect(state.shareText) {

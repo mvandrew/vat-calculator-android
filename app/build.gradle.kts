@@ -18,9 +18,8 @@ android {
         minSdk = 24
         targetSdk = 37
         // versionName 3.0 is the owner-approved user-visible release version.
-        // versionCode is a development value; assign the release code in phase 07
-        // after re-checking all codes uploaded to Play Console (max known is 9).
-        versionCode = 1
+        // Play Console re-check on 2026-09-17: the highest uploaded code is 9 (version 2.2).
+        versionCode = 10
         versionName = "3.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
