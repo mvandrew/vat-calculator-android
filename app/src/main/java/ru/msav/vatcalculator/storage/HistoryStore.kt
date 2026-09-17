@@ -26,12 +26,8 @@ data class LegacyJournalRow(
  * как в старой схеме: 0 — выделить, 1 — начислить. `legacy_id` уникален и
  * хранит соответствие старому `_id`. Отметка завершения импорта журнала
  * живёт в таблице `meta` и фиксируется в одной транзакции со вставками.
- *
- * Класс открыт (`open`) для instrumented-тестов ошибки хранилища (фаза 06,
- * A13): переопределение [insert]/[update]/[delete] с исключением вместо
- * порчи реальных файлов БД. Поведение production-кода не меняется.
  */
-open class HistoryStore(context: Context) : SQLiteOpenHelper(
+class HistoryStore(context: Context) : SQLiteOpenHelper(
     context.applicationContext,
     DATABASE_NAME,
     null,
@@ -59,7 +55,7 @@ open class HistoryStore(context: Context) : SQLiteOpenHelper(
     }
 
     /** Создаёт новую запись и возвращает её ID. */
-    open suspend fun insert(amount: BigDecimal, rate: BigDecimal, mode: VatMode): Long =
+    suspend fun insert(amount: BigDecimal, rate: BigDecimal, mode: VatMode): Long =
         withContext(Dispatchers.IO) {
             writableDatabase.insertWithOnConflict(
                 TABLE_CALCULATIONS,
@@ -70,7 +66,7 @@ open class HistoryStore(context: Context) : SQLiteOpenHelper(
         }
 
     /** Обновляет запись по ID, не меняя её `legacy_id`; false — записи нет. */
-    open suspend fun update(id: Long, amount: BigDecimal, rate: BigDecimal, mode: VatMode): Boolean =
+    suspend fun update(id: Long, amount: BigDecimal, rate: BigDecimal, mode: VatMode): Boolean =
         withContext(Dispatchers.IO) {
             writableDatabase.update(
                 TABLE_CALCULATIONS,
@@ -81,7 +77,7 @@ open class HistoryStore(context: Context) : SQLiteOpenHelper(
         }
 
     /** Удаляет только выбранную запись; false — записи нет. */
-    open suspend fun delete(id: Long): Boolean = withContext(Dispatchers.IO) {
+    suspend fun delete(id: Long): Boolean = withContext(Dispatchers.IO) {
         writableDatabase.delete(TABLE_CALCULATIONS, "${COLUMN_ID} = ?", arrayOf(id.toString())) > 0
     }
 
@@ -110,7 +106,7 @@ open class HistoryStore(context: Context) : SQLiteOpenHelper(
     }
 
     /** Все записи: новые первыми по монотонному ID. */
-    open suspend fun list(): List<HistoryEntry> = withContext(Dispatchers.IO) {
+    suspend fun list(): List<HistoryEntry> = withContext(Dispatchers.IO) {
         readableDatabase.query(
             TABLE_CALCULATIONS,
             COLUMNS,

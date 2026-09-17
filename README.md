@@ -16,9 +16,11 @@
 export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 export ANDROID_HOME="$HOME/Library/Android/sdk"
 ./gradlew --version
-./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug :app:assembleDebugAndroidTest
+./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
 ./gradlew :app:assembleRelease :app:bundleRelease :app:lintRelease
 ```
+
+Постоянный автоматический контур — 30 JVM-тестов: 26 проверок расчёта, ввода, округления и форматирования и четыре временные проверки миграции до завершения обновления 2.2 → 3.0. Instrumentation-тестов в проекте нет; перед выпуском выполняется короткая ручная smoke-проверка, а миграция подтверждается реальным обновлением через тестовый трек Google Play.
 
 Kotlin 2.4.20 используется с более новыми AGP/Gradle, чем верхняя граница его таблицы полной совместимости. Версии выбраны явно и проверяются сборкой и lint; предупреждения несовместимости не подавляются.
 

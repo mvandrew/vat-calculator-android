@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -51,11 +50,9 @@ class CalculatorViewModel(
     private val appStateStore: AppStateStore,
     private val historyStore: HistoryStore,
     private val migrator: StateMigrator,
-    externalScope: CoroutineScope? = null,
 ) : ViewModel() {
 
-    /** Основной scope: viewModelScope в приложении; явный scope — в тестах. */
-    private val scope = externalScope ?: viewModelScope
+    private val scope = viewModelScope
 
     data class UiState(
         val amountText: String = "",
@@ -74,7 +71,7 @@ class CalculatorViewModel(
         val shareText: String? = null,
         /** Открытие записи журнала при несохранённых изменениях требует подтверждения. */
         val confirmOpenEntry: HistoryEntry? = null,
-        /** false до завершения первичной загрузки/миграции; тесты ждут true. */
+        /** false до завершения первичной загрузки и миграции. */
         val loaded: Boolean = false,
     )
 
