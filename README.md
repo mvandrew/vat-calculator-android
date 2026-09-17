@@ -7,7 +7,7 @@
 - Android Studio Quail 4 (2026.1.4), встроенный JBR 25.0.3.
 - Gradle Wrapper 9.7.1, AGP 9.4.0, Kotlin и Compose Compiler 2.4.20.
 - JVM Gradle: 25 (закреплена без локальных путей); Java/Kotlin target: 17.
-- SDK Platform 37.2, Build Tools 37.0.0; minSdk 24, targetSdk 37.
+- SDK Platform 37.2, Build Tools 37.0.0; minSdk 24, targetSdk 36.
 - Версии библиотек: `gradle/libs.versions.toml`, Compose через BOM 2026.09.00.
 
 В Android Studio выберите встроенный JBR как Gradle JDK. SDK задаётся локальным `local.properties` (`sdk.dir`) либо через `ANDROID_HOME`; машинные пути не коммитятся. Для CLI на macOS:

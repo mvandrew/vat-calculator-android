@@ -16,7 +16,7 @@ android {
         // Release identity of the existing Play listing; internal namespace stays ru.msav.vatcalculator.
         applicationId = "ru.msav.ruvattaxcalculator"
         minSdk = 24
-        targetSdk = 37
+        targetSdk = 36
         // versionName 3.0 is the owner-approved user-visible release version.
         // Play Console re-check on 2026-09-17: the highest uploaded code is 9 (version 2.2).
         versionCode = 10
