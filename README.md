@@ -30,7 +30,8 @@ Kotlin 2.4.20 используется с более новыми AGP/Gradle, ч
 
 - `applicationId = ru.msav.ruvattaxcalculator` — пакет существующей карточки Google Play (ТЗ, идентичность выпуска).
 - Внутренний `namespace = ru.msav.vatcalculator` сохранён; классы остаются в этом пакете.
-- `versionName = 3.0`, `versionCode = 10`. Код назначен 17 сентября 2026 года после проверки Play Console: максимальный ранее загруженный код — 9 (версия 2.2).
+- `versionName = 3.0`, `versionCode = 13` — актуальный код для следующей загрузки в Play Console; коды 10–12 использованы при подготовке выпусков в Console (максимальный код версии 2.2 — 9).
+- Release использует R8: `isMinifyEnabled = true`, `isShrinkResources = true`, базовый файл `proguard-android-optimize.txt`; прикладные keep rules в `app/proguard-rules.pro` отсутствуют. Mapping-файл `app/build/outputs/mapping/release/mapping.txt` сохраняется для каждой выпущенной версии и нужен для расшифровки stack traces.
 - Пароли и закрытый upload key не сохраняются в проекте. Финальный AAB владелец подписывает вручную через Android Studio; загрузка и публикация выполняются отдельными фазами.
 
 ## Структура
