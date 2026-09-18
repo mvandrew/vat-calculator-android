@@ -61,6 +61,7 @@ import ru.msav.vatcalculator.calculation.VatMode
 import ru.msav.vatcalculator.storage.HistoryEntry
 import ru.msav.vatcalculator.ui.LocalAppLanguage
 import ru.msav.vatcalculator.ui.appString
+import ru.msav.vatcalculator.ui.components.AppTopBar
 import kotlin.math.roundToInt
 
 /**
@@ -143,6 +144,13 @@ fun HistoryScreenContent(
     Scaffold(
         modifier = modifier,
         contentWindowInsets = WindowInsets.safeDrawing,
+        topBar = {
+            AppTopBar(
+                title = appString(R.string.screen_history),
+                onBack = onBack,
+                backContentDescription = appString(R.string.nav_back_to_calculator),
+            )
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         Column(
@@ -153,7 +161,6 @@ fun HistoryScreenContent(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            ScreenHeader(title = appString(R.string.screen_history), onBack = onBack)
             if (historyState.entries.isEmpty()) {
                 // Пустой журнал: понятное сообщение и возврат к калькулятору.
                 Text(appString(R.string.history_empty))

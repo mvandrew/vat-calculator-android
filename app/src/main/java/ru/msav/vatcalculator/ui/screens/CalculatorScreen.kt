@@ -47,6 +47,8 @@ import ru.msav.vatcalculator.calculation.VatMode
 import ru.msav.vatcalculator.storage.LegacyPreferencesSource
 import ru.msav.vatcalculator.ui.LocalAppLanguage
 import ru.msav.vatcalculator.ui.appString
+import ru.msav.vatcalculator.ui.components.AppTopBar
+import ru.msav.vatcalculator.ui.components.TopBarOverflowAction
 import ru.msav.vatcalculator.ui.rememberAppLanguage
 import java.math.BigDecimal
 
@@ -54,8 +56,9 @@ import java.math.BigDecimal
  * Экран калькулятора (interface.md §4.1): ввод суммы и ставки, переключатель
  * режима, три редактируемых результата с обратным пересчётом, команды
  * «Сохранить»/«Новый расчёт»/«Поделиться» и переходы в «Журнал»/«Настройки»/
- * «О программе» (фаза 06). При [CalculatorViewModel.UiState.editingFromHistory]
- * над формой показан заголовок с кнопкой возврата в журнал; «Новый расчёт»
+ * «О программе» через верхнюю панель (фаза 06). При
+ * [CalculatorViewModel.UiState.editingFromHistory] верхняя панель показывает
+ * заголовок редактирования со стрелкой возврата в журнал; «Новый расчёт»
  * завершает сеанс редактирования и возвращает стартовую форму.
  */
 @Composable
@@ -144,6 +147,25 @@ fun CalculatorScreenContent(
     Scaffold(
         modifier = modifier,
         contentWindowInsets = WindowInsets.safeDrawing,
+        topBar = {
+            val editing = state.editingFromHistory
+            AppTopBar(
+                title = appString(
+                    if (editing) R.string.calculator_edit_title else R.string.screen_calculator,
+                ),
+                onBack = if (editing) onBackToHistory else null,
+                backContentDescription = if (editing) {
+                    appString(R.string.nav_back_to_history)
+                } else {
+                    null
+                },
+                onOpenHistory = if (editing) null else onOpenHistory,
+                overflowActions = listOf(
+                    TopBarOverflowAction(appString(R.string.screen_settings), onOpenSettings),
+                    TopBarOverflowAction(appString(R.string.screen_about), onOpenAbout),
+                ),
+            )
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         Column(
@@ -155,10 +177,6 @@ fun CalculatorScreenContent(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // Режим редактирования записи журнала: заголовок с возвратом в журнал.
-            if (state.editingFromHistory) {
-                ScreenHeader(title = appString(R.string.calculator_edit_title), onBack = onBackToHistory)
-            }
             AmountField(state, onAmountChange, onFieldFocusChanged)
             RateField(state, onRateChange, onFieldFocusChanged)
             ModeSelector(state.mode, onModeChange)
@@ -168,11 +186,6 @@ fun CalculatorScreenContent(
                 onSave = onSave,
                 onNewCalculation = onNewCalculation,
                 onShare = onShare,
-            )
-            NavigationButtons(
-                onOpenHistory = onOpenHistory,
-                onOpenSettings = onOpenSettings,
-                onOpenAbout = onOpenAbout,
             )
         }
     }
@@ -379,20 +392,6 @@ private fun CommandButtons(
         OutlinedButton(onClick = onShare, enabled = canSave, modifier = Modifier.fillMaxWidth()) {
             Text(appString(R.string.button_share))
         }
-    }
-}
-
-/** Переходы в остальные экраны (interface.md §4.1); все кнопки подписаны. */
-@Composable
-private fun NavigationButtons(
-    onOpenHistory: () -> Unit,
-    onOpenSettings: () -> Unit,
-    onOpenAbout: () -> Unit,
-) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        TextButton(onClick = onOpenHistory) { Text(appString(R.string.screen_history)) }
-        TextButton(onClick = onOpenSettings) { Text(appString(R.string.screen_settings)) }
-        TextButton(onClick = onOpenAbout) { Text(appString(R.string.screen_about)) }
     }
 }
 

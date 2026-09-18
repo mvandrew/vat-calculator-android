@@ -50,7 +50,10 @@
     <string name="button_share">Поделиться</string>
     <string name="share_via">Поделиться расчётом</string>
     <string name="share_no_app">Нет приложения для отправки</string>
-    <string name="nav_back">Назад</string>
+    <string name="nav_open_history">Открыть журнал</string>
+    <string name="nav_more_options">Ещё</string>
+    <string name="nav_back_to_history">Назад в журнал</string>
+    <string name="nav_back_to_calculator">Назад к калькулятору</string>
 
     <string name="settings_theme_label">Тема</string>
     <string name="settings_theme_system">Системная</string>
