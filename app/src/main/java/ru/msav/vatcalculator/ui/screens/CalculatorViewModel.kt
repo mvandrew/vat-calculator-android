@@ -24,6 +24,7 @@ import ru.msav.vatcalculator.calculation.ParsedInput
 import ru.msav.vatcalculator.calculation.ParseError
 import ru.msav.vatcalculator.calculation.ResultField
 import ru.msav.vatcalculator.calculation.ShareTextBuilder
+import ru.msav.vatcalculator.calculation.VatCalculator
 import ru.msav.vatcalculator.calculation.VatMode
 import ru.msav.vatcalculator.calculation.VatResult
 import ru.msav.vatcalculator.storage.AppState
@@ -72,6 +73,12 @@ class CalculatorViewModel(
         val resultError: ParseError? = null,
         val canSave: Boolean = false,
         val openEntryId: Long? = null,
+        /**
+         * Сеанс редактирования записи, открытой из журнала: на калькуляторе
+         * виден заголовок с кнопкой возврата в журнал. Не сохраняется между
+         * запусками — на холодном старте всегда обычная форма.
+         */
+        val editingFromHistory: Boolean = false,
         val hasUnsavedChanges: Boolean = false,
         val saveNotice: SaveNotice? = null,
         val confirmDiscard: Boolean = false,
@@ -289,6 +296,27 @@ class CalculatorViewModel(
         uiStateFlow.value = uiStateFlow.value.copy(shareText = null)
     }
 
+    /**
+     * «Поделиться» записью журнала (interface.md §7): текст строится из самой
+     * записи тем же шаблоном фазы 03; текущая форма не загружается и не
+     * пересчитывается. Язык вывода разрешает UI-слой и передаёт сюда.
+     */
+    fun shareEntry(entry: HistoryEntry, language: AppLanguage) {
+        val input = CalculationInput(entry.amount, entry.rate, entry.mode)
+        uiStateFlow.value = uiStateFlow.value.copy(
+            shareText = ShareTextBuilder.build(input, VatCalculator.calculate(input), language),
+        )
+    }
+
+    /**
+     * Выход из сеанса редактирования записи журнала без сброса формы
+     * (симметрично возврату из журнала, interface.md §4.4): поля и
+     * несохранённые изменения сохраняются, кнопка возврата в журнал исчезает.
+     */
+    fun exitEntryEditing() {
+        uiStateFlow.value = uiStateFlow.value.copy(editingFromHistory = false)
+    }
+
     /** Настройки: немедленное применение ко всем экранам и запись в хранилище. */
     fun onThemeChange(setting: ThemeSetting) {
         themeSetting = setting
@@ -310,13 +338,16 @@ class CalculatorViewModel(
     /**
      * Клик по записи журнала: при несохранённых изменениях текущей формы —
      * подтверждение (interface.md §4.4), иначе запись сразу загружается.
+     * Возвращает true, если запись открыта немедленно и навигация может
+     * показать форму редактирования; false — показан диалог подтверждения.
      */
-    fun onHistoryEntryClick(entry: HistoryEntry) {
+    fun onHistoryEntryClick(entry: HistoryEntry): Boolean {
         if (uiStateFlow.value.hasUnsavedChanges) {
             uiStateFlow.value = uiStateFlow.value.copy(confirmOpenEntry = entry)
-        } else {
-            openEntry(entry)
+            return false
         }
+        openEntry(entry)
+        return true
     }
 
     fun confirmOpenEntry() {
@@ -347,7 +378,10 @@ class CalculatorViewModel(
                 // Удаление открытой записи: поля остаются, связь с ID снимается —
                 // следующее сохранение создаст новую запись (interface.md §4.4).
                 if (uiStateFlow.value.openEntryId == id) {
-                    uiStateFlow.value = uiStateFlow.value.copy(openEntryId = null)
+                    uiStateFlow.value = uiStateFlow.value.copy(
+                        openEntryId = null,
+                        editingFromHistory = false,
+                    )
                     baseline = snapshot()
                     refreshUnsavedFlag()
                 }
@@ -381,12 +415,15 @@ class CalculatorViewModel(
             mode = entry.mode,
             openEntryId = entry.id,
         )
+        uiStateFlow.value = uiStateFlow.value.copy(editingFromHistory = true)
         baseline = snapshot()
         refreshUnsavedFlag()
     }
 
+    /** «Новый расчёт» завершает и сеанс редактирования из журнала (interface.md §4.1). */
     private fun resetForm() {
         applyForm("", "22", VatMode.INCLUSIVE, openEntryId = null)
+        uiStateFlow.value = uiStateFlow.value.copy(editingFromHistory = false)
         baseline = snapshot()
         uiStateFlow.value = uiStateFlow.value.copy(saveNotice = null)
         refreshUnsavedFlag()

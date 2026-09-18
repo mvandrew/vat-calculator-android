@@ -1,7 +1,5 @@
 package ru.msav.vatcalculator.ui.screens
 
-import android.content.ActivityNotFoundException
-import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,7 +32,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -57,7 +54,9 @@ import java.math.BigDecimal
  * Экран калькулятора (interface.md §4.1): ввод суммы и ставки, переключатель
  * режима, три редактируемых результата с обратным пересчётом, команды
  * «Сохранить»/«Новый расчёт»/«Поделиться» и переходы в «Журнал»/«Настройки»/
- * «О программе» (фаза 06).
+ * «О программе» (фаза 06). При [CalculatorViewModel.UiState.editingFromHistory]
+ * над формой показан заголовок с кнопкой возврата в журнал; «Новый расчёт»
+ * завершает сеанс редактирования и возвращает стартовую форму.
  */
 @Composable
 fun CalculatorScreen(
@@ -66,6 +65,7 @@ fun CalculatorScreen(
     onOpenSettings: () -> Unit,
     onOpenAbout: () -> Unit,
     modifier: Modifier = Modifier,
+    onBackToHistory: () -> Unit = {},
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val settings by viewModel.settingsState.collectAsStateWithLifecycle()
@@ -88,6 +88,7 @@ fun CalculatorScreen(
         onOpenHistory = onOpenHistory,
         onOpenSettings = onOpenSettings,
         onOpenAbout = onOpenAbout,
+        onBackToHistory = onBackToHistory,
         modifier = modifier,
     )
 }
@@ -111,14 +112,12 @@ fun CalculatorScreenContent(
     onOpenHistory: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
     onOpenAbout: () -> Unit = {},
+    onBackToHistory: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val context = LocalContext.current
     val savedText = appString(R.string.save_saved)
     val failedText = appString(R.string.save_failed)
-    val shareNoAppText = appString(R.string.share_no_app)
-    val chooserTitle = appString(R.string.share_via)
     val language = LocalAppLanguage.current
 
     val saveNotice = state.saveNotice
@@ -136,24 +135,11 @@ fun CalculatorScreenContent(
         }
     }
 
-    LaunchedEffect(state.shareText) {
-        val text = state.shareText
-        if (text != null) {
-            // interface.md §7: text/plain через системный Sharesheet; отмена и
-            // отсутствие обработчика не меняют расчёт и не вызывают падения.
-            val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                type = "text/plain"
-                putExtra(Intent.EXTRA_TEXT, text)
-            }
-            val chooser = Intent.createChooser(sendIntent, chooserTitle)
-            try {
-                context.startActivity(chooser)
-            } catch (error: ActivityNotFoundException) {
-                snackbarHostState.showSnackbar(shareNoAppText)
-            }
-        }
-        onConsumeShareText()
-    }
+    ShareSheetEffect(
+        shareText = state.shareText,
+        snackbarHostState = snackbarHostState,
+        onConsume = onConsumeShareText,
+    )
 
     Scaffold(
         modifier = modifier,
@@ -169,6 +155,10 @@ fun CalculatorScreenContent(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            // Режим редактирования записи журнала: заголовок с возвратом в журнал.
+            if (state.editingFromHistory) {
+                ScreenHeader(title = appString(R.string.calculator_edit_title), onBack = onBackToHistory)
+            }
             AmountField(state, onAmountChange, onFieldFocusChanged)
             RateField(state, onRateChange, onFieldFocusChanged)
             ModeSelector(state.mode, onModeChange)

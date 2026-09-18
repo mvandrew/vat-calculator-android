@@ -68,6 +68,8 @@
     <string name="history_delete_text">The entry will be removed from the history.</string>
     <string name="history_delete_failed">Could not delete the entry</string>
     <string name="history_open_entry">Open entry</string>
+    <string name="history_edit">Edit</string>
+    <string name="calculator_edit_title">Edit calculation</string>
 
     <string name="about_version">Version: %1$s</string>
     <string name="about_author">© 2026 Andrey Mishchenko</string>

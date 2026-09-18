@@ -68,6 +68,8 @@
     <string name="history_delete_text">Запись будет удалена из журнала.</string>
     <string name="history_delete_failed">Не удалось удалить запись</string>
     <string name="history_open_entry">Открыть запись</string>
+    <string name="history_edit">Редактировать</string>
+    <string name="calculator_edit_title">Редактирование расчёта</string>
 
     <string name="about_version">Версия: %1$s</string>
     <string name="about_author">© 2026 Андрей Мищенко</string>
