@@ -28,6 +28,7 @@
     <string name="error_precision_rate">Не больше четырёх знаков после разделителя</string>
     <string name="error_range_amount">Введите значение от 0 до 999 999 999 999,99</string>
     <string name="error_range_rate">Ставка должна быть от 0% до менее 100%</string>
+    <string name="error_vat_zero_rate">При ставке 0% НДС всегда равен нулю</string>
 
     <string name="discard_title">Сбросить изменения?</string>
     <string name="discard_text">Несохранённые данные текущего расчёта будут потеряны. Сохранённый журнал не затрагивается.</string>

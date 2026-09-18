@@ -28,6 +28,7 @@
     <string name="error_precision_rate">No more than 4 decimal places</string>
     <string name="error_range_amount">Enter a value from 0 to 999 999 999 999.99</string>
     <string name="error_range_rate">The rate must be at least 0% and less than 100%</string>
+    <string name="error_vat_zero_rate">VAT is always zero at a 0% rate</string>
 
     <string name="discard_title">Discard changes?</string>
     <string name="discard_text">Unsaved data of the current calculation will be lost. Saved history is not affected.</string>

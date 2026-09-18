@@ -29,13 +29,16 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -48,11 +51,13 @@ import ru.msav.vatcalculator.storage.LegacyPreferencesSource
 import ru.msav.vatcalculator.ui.LocalAppLanguage
 import ru.msav.vatcalculator.ui.appString
 import ru.msav.vatcalculator.ui.rememberAppLanguage
+import java.math.BigDecimal
 
 /**
  * Экран калькулятора (interface.md §4.1): ввод суммы и ставки, переключатель
- * режима, три результата, команды «Сохранить»/«Новый расчёт»/«Поделиться»
- * и переходы в «Журнал»/«Настройки»/«О программе» (фаза 06).
+ * режима, три редактируемых результата с обратным пересчётом, команды
+ * «Сохранить»/«Новый расчёт»/«Поделиться» и переходы в «Журнал»/«Настройки»/
+ * «О программе» (фаза 06).
  */
 @Composable
 fun CalculatorScreen(
@@ -70,6 +75,7 @@ fun CalculatorScreen(
         onAmountChange = viewModel::onAmountChange,
         onRateChange = viewModel::onRateChange,
         onModeChange = viewModel::onModeChange,
+        onResultChange = viewModel::onResultFieldChange,
         onFieldFocusChanged = viewModel::onFieldFocusChanged,
         onSave = viewModel::save,
         onNewCalculation = viewModel::newCalculation,
@@ -92,6 +98,7 @@ fun CalculatorScreenContent(
     onAmountChange: (String) -> Unit,
     onRateChange: (String) -> Unit,
     onModeChange: (VatMode) -> Unit,
+    onResultChange: (CalculatorViewModel.Field, String) -> Unit,
     onFieldFocusChanged: (CalculatorViewModel.Field, Boolean) -> Unit,
     onSave: () -> Unit,
     onNewCalculation: () -> Unit,
@@ -165,7 +172,7 @@ fun CalculatorScreenContent(
             AmountField(state, onAmountChange, onFieldFocusChanged)
             RateField(state, onRateChange, onFieldFocusChanged)
             ModeSelector(state.mode, onModeChange)
-            ResultsBlock(state, language)
+            ResultsBlock(state, onResultChange, onFieldFocusChanged, language)
             CommandButtons(
                 canSave = state.canSave,
                 onSave = onSave,
@@ -243,7 +250,7 @@ private fun RateField(
             { Text(appString(rateErrorText(error))) }
         },
         singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
     )
 }
 
@@ -267,42 +274,97 @@ private fun ModeSelector(mode: VatMode, onModeChange: (VatMode) -> Unit) {
     }
 }
 
+/**
+ * Итоги «Без НДС», «НДС», «С НДС» (interface.md §4.1). Вне фокуса показывают
+ * форматированные производные значения и прочерк без готового результата;
+ * фокус или правка делает поле источником обратного пересчёта: остальные
+ * суммы и поле суммы пересчитываются от введённого значения по текущей ставке.
+ */
 @Composable
-private fun ResultsBlock(state: CalculatorViewModel.UiState, language: AppLanguage) {
+private fun ResultsBlock(
+    state: CalculatorViewModel.UiState,
+    onResultChange: (CalculatorViewModel.Field, String) -> Unit,
+    onFieldFocusChanged: (CalculatorViewModel.Field, Boolean) -> Unit,
+    language: AppLanguage,
+) {
     val results = state.results
-    val formatter = MoneyFormatter
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        ResultRow(
-            label = appString(R.string.result_base),
-            value = results?.let { formatter.formatMoney(it.base, language) },
+        ResultField(
+            field = CalculatorViewModel.Field.BASE,
+            labelRes = R.string.result_base,
+            value = results?.base,
+            state = state,
+            onResultChange = onResultChange,
+            onFieldFocusChanged = onFieldFocusChanged,
+            language = language,
+            imeAction = ImeAction.Next,
         )
-        ResultRow(
-            label = appString(R.string.result_vat),
-            value = results?.let { formatter.formatMoney(it.vat, language) },
+        ResultField(
+            field = CalculatorViewModel.Field.VAT,
+            labelRes = R.string.result_vat,
+            value = results?.vat,
+            state = state,
+            onResultChange = onResultChange,
+            onFieldFocusChanged = onFieldFocusChanged,
+            language = language,
+            imeAction = ImeAction.Next,
         )
-        ResultRow(
-            label = appString(R.string.result_total),
-            value = results?.let { formatter.formatMoney(it.total, language) },
+        ResultField(
+            field = CalculatorViewModel.Field.TOTAL,
+            labelRes = R.string.result_total,
+            value = results?.total,
+            state = state,
+            onResultChange = onResultChange,
+            onFieldFocusChanged = onFieldFocusChanged,
+            language = language,
+            imeAction = ImeAction.Done,
         )
     }
 }
 
 @Composable
-private fun ResultRow(label: String, value: String?) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(text = label, modifier = Modifier.weight(1f))
-        Text(
-            text = value ?: appString(R.string.result_empty),
-            style = resultValueStyle(value),
-        )
+private fun ResultField(
+    field: CalculatorViewModel.Field,
+    labelRes: Int,
+    value: BigDecimal?,
+    state: CalculatorViewModel.UiState,
+    onResultChange: (CalculatorViewModel.Field, String) -> Unit,
+    onFieldFocusChanged: (CalculatorViewModel.Field, Boolean) -> Unit,
+    language: AppLanguage,
+    imeAction: ImeAction,
+) {
+    // Фокус нужен только для выбора режима отображения (сырой ввод или формат);
+    // семантика фокуса обрабатывается ViewModel через onFieldFocusChanged.
+    var focused by remember { mutableStateOf(false) }
+    val formatted = value?.let { MoneyFormatter.formatMoney(it, language) }
+    val isSource = state.source == field
+    val shown = when {
+        focused && isSource -> state.resultEditText ?: formatted.orEmpty()
+        else -> formatted ?: appString(R.string.result_empty)
     }
+    val error = if (isSource) state.resultError else null
+    OutlinedTextField(
+        value = shown,
+        onValueChange = { onResultChange(field, it) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .onFocusChanged { changed ->
+                focused = changed.isFocused
+                onFieldFocusChanged(field, changed.isFocused)
+            },
+        label = { Text(appString(labelRes)) },
+        isError = error != null,
+        supportingText = error?.let { err ->
+            { Text(appString(resultErrorText(err))) }
+        },
+        singleLine = true,
+        textStyle = resultValueStyle(shown).copy(textAlign = TextAlign.End),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = imeAction),
+    )
 }
 
 /** Крупные числа остаются читаемыми: длинные значения используют меньший стиль. */
-private fun resultValueStyle(value: String?): TextStyle = if ((value?.length ?: 0) > 14) {
+private fun resultValueStyle(value: String): TextStyle = if (value.length > 14) {
     TextStyle(fontSize = 18.sp)
 } else {
     TextStyle(fontSize = 24.sp)
@@ -404,6 +466,7 @@ private fun amountErrorText(error: ParseError): Int = when (error) {
     ParseError.WrongGrouping -> R.string.error_grouping
     ParseError.TooManyFractionDigits -> R.string.error_precision_amount
     ParseError.OutOfRange -> R.string.error_range_amount
+    ParseError.VatAtZeroRate -> R.string.error_vat_zero_rate
 }
 
 private fun rateErrorText(error: ParseError): Int = when (error) {
@@ -412,4 +475,15 @@ private fun rateErrorText(error: ParseError): Int = when (error) {
     ParseError.WrongGrouping -> R.string.error_grouping
     ParseError.TooManyFractionDigits -> R.string.error_precision_rate
     ParseError.OutOfRange -> R.string.error_range_rate
+    ParseError.VatAtZeroRate -> R.string.error_vat_zero_rate
+}
+
+/** Ошибки поля итога: точность и диапазон — как у суммы; налог при 0% — своя. */
+private fun resultErrorText(error: ParseError): Int = when (error) {
+    ParseError.InputTooLong -> R.string.error_too_long
+    ParseError.WrongFormat -> R.string.error_wrong_format
+    ParseError.WrongGrouping -> R.string.error_grouping
+    ParseError.TooManyFractionDigits -> R.string.error_precision_amount
+    ParseError.OutOfRange -> R.string.error_range_amount
+    ParseError.VatAtZeroRate -> R.string.error_vat_zero_rate
 }

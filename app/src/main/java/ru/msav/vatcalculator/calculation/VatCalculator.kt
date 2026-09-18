@@ -58,4 +58,33 @@ object VatCalculator {
             .divide(hundredPlusRate, SCALE, RoundingMode.HALF_UP)
         return VatResult(base = base, vat = total.subtract(base), total = total)
     }
+
+    /**
+     * Обратный расчёт от базы: `T = R2(B × (1 + r / 100))`; `V = T − B`.
+     * Совпадает с начислением от суммы, равной базе (calculation.md §5.2).
+     */
+    fun fromBase(base: BigDecimal, ratePercent: BigDecimal): VatResult =
+        calculate(CalculationInput(base, ratePercent, VatMode.EXCLUSIVE))
+
+    /**
+     * Обратный расчёт от итога: `B = R2(T × 100 / (100 + r))`; `V = T − B`.
+     * Совпадает с выделением от суммы, равной итогу (calculation.md §5.2).
+     */
+    fun fromTotal(total: BigDecimal, ratePercent: BigDecimal): VatResult =
+        calculate(CalculationInput(total, ratePercent, VatMode.INCLUSIVE))
+
+    /**
+     * Обратный расчёт от налога: `B = R2(V × 100 / r)`; `T = B + V`.
+     * Отредактированное значение не округляется повторно; итог получается
+     * суммой, инвариант `B + V = T` сохраняется. Требует `r > 0`: при нулевой
+     * ставке ненулевой налог невозможен, эта проверка лежит на вызывающем.
+     */
+    fun fromVat(vat: BigDecimal, ratePercent: BigDecimal): VatResult {
+        require(ratePercent.signum() > 0) { "rate must be positive" }
+        val base = vat
+            .multiply(HUNDRED)
+            .divide(ratePercent, SCALE, RoundingMode.HALF_UP)
+        val tax = vat.setScale(SCALE)
+        return VatResult(base = base, vat = tax, total = base.add(tax))
+    }
 }
