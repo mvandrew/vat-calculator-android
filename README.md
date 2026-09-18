@@ -1,45 +1,35 @@
-# Калькулятор НДС — Android
+<p align="center">
+  <img src="artwork/play/play-icon-512.png" alt="VAT Calculator app icon" width="128" height="128">
+</p>
 
-Новая реализация по ТЗ workspace `tasks/01-android-release/technical-specification.md`. Реализованы расчётное ядро, локальное состояние и миграция данных прежних версий, журнал, четыре Compose-экрана, RU/EN, темы, отправка и внешние ссылки. Release-подготовка ведётся в фазе 07.
+# VAT Calculator for Android
 
-## Сборка
+VAT Calculator is a native Android app for adding VAT to a net amount or extracting it from a gross amount. Calculations use precise decimal arithmetic, and saved entries remain editable.
 
-- Android Studio Quail 4 (2026.1.4), встроенный JBR 25.0.3.
-- Gradle Wrapper 9.7.1, AGP 9.4.0, Kotlin и Compose Compiler 2.4.20.
-- JVM Gradle: 25 (закреплена без локальных путей); Java/Kotlin target: 17.
-- SDK Platform 37.2, Build Tools 37.0.0; minSdk 24, targetSdk 36.
-- Версии библиотек: `gradle/libs.versions.toml`, Compose через BOM 2026.09.00.
+[Product page](https://msav.ru/apps/vat-calculator/) · [Privacy policy](https://msav.ru/apps/vat-calculator/privacy/)
 
-В Android Studio выберите встроенный JBR как Gradle JDK. SDK задаётся локальным `local.properties` (`sdk.dir`) либо через `ANDROID_HOME`; машинные пути не коммитятся. Для CLI на macOS:
+## Product highlights
 
-```sh
-export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
-export ANDROID_HOME="$HOME/Library/Android/sdk"
-./gradlew --version
-./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
-./gradlew :app:assembleRelease :app:bundleRelease :app:lintRelease
-```
+- Add or remove VAT using any rate from 0% up to, but not including, 100%.
+- Edit the net amount, VAT amount, or gross amount and recalculate the remaining values.
+- Save calculations locally, reopen and update them, or remove them from history.
+- Share a formatted result through the Android system share sheet.
+- Switch between English and Russian without restarting the app.
+- Follow the system appearance or select a light or dark theme.
+- Keep calculation data on the device. The app has no analytics, advertising, or payment SDKs and does not request network access.
 
-Постоянный автоматический контур — 49 JVM-тестов: 45 проверок расчёта, ввода, округления, обратных пересчётов от итогов и форматирования и четыре временные проверки миграции до завершения обновления 2.2 → 3.0. Instrumentation-тестов в проекте нет; перед выпуском выполняется короткая ручная smoke-проверка, а миграция подтверждается реальным обновлением через тестовый трек Google Play.
+## Engineering profile
 
-Kotlin 2.4.20 используется с более новыми AGP/Gradle, чем верхняя граница его таблицы полной совместимости. Версии выбраны явно и проверяются сборкой и lint; предупреждения несовместимости не подавляются.
+- The app is written in Kotlin with Jetpack Compose and Material 3.
+- A ViewModel exposes lifecycle-aware state through `StateFlow`; coroutine-backed storage work stays off the main thread.
+- `BigDecimal` arithmetic, explicit rounding, and locale-aware parsing keep monetary results deterministic.
+- Local state and calculation history survive process restarts. One-time migration supports data created by versions 1.5 and 2.2.
+- Release builds use code and resource shrinking. Debug tooling is excluded from release builds.
 
-Встроенный Kotlin AGP сохранён; KGP обновляется через buildscript classpath без `org.jetbrains.kotlin.android`. Аналитических, рекламных и платёжных SDK нет. Debug tooling не входит в release.
+## Verification
 
-## Конфигурация выпуска
+The project includes 49 JVM tests covering input parsing, VAT arithmetic, reverse calculations, rounding, formatting, and legacy-data migration. The release process also checks lint, optimized builds, and behavior on an Android device.
 
-- `applicationId = ru.msav.ruvattaxcalculator` — пакет существующей карточки Google Play (ТЗ, идентичность выпуска).
-- Внутренний `namespace = ru.msav.vatcalculator` сохранён; классы остаются в этом пакете.
-- `versionName = 3.0`, `versionCode = 13` — актуальный код для следующей загрузки в Play Console; коды 10–12 использованы при подготовке выпусков в Console (максимальный код версии 2.2 — 9).
-- Release использует R8: `isMinifyEnabled = true`, `isShrinkResources = true`, базовый файл `proguard-android-optimize.txt`; прикладные keep rules в `app/proguard-rules.pro` отсутствуют. Mapping-файл `app/build/outputs/mapping/release/mapping.txt` сохраняется для каждой выпущенной версии и нужен для расшифровки stack traces.
-- Пароли и закрытый upload key не сохраняются в проекте. Финальный AAB владелец подписывает вручную через Android Studio; загрузка и публикация выполняются отдельными фазами.
+## Author
 
-## Структура
-
-- `MainActivity` и `ui/AppNavigation.kt` — launcher Activity, тема, локализация и навигация четырёх Compose-экранов.
-- `calculation/` — разбор ввода, точные расчёты, форматирование и текст отправки.
-- `storage/` — последнее состояние, журнал и однократная миграция данных версий 1.5/2.2.
-- `ui/screens/` — калькулятор, журнал, настройки и экран «О программе».
-- `artwork/` и launcher-ресурсы — утверждённый языково-нейтральный набор значков для приложения и Google Play.
-
-XML-темы MaterialComponents, AppCompat и Material Components удалены при переходе UI на Compose. Проверка обновления заготовки от 16 сентября 2026 к прежнему составу зависимостей не применяется к текущей конфигурации; актуальные результаты проверок — в отчёте фазы 02 workspace.
+Developed by [Andrey Mishchenko](https://msav.ru/).
