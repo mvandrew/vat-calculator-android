@@ -40,9 +40,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ru.msav.vatcalculator.R
+import ru.msav.vatcalculator.calculation.AmountParser
 import ru.msav.vatcalculator.calculation.AppLanguage
 import ru.msav.vatcalculator.calculation.MoneyFormatter
 import ru.msav.vatcalculator.calculation.ParseError
+import ru.msav.vatcalculator.calculation.ParsedInput
 import ru.msav.vatcalculator.calculation.VatMode
 import ru.msav.vatcalculator.storage.LegacyPreferencesSource
 import ru.msav.vatcalculator.ui.LocalAppLanguage
@@ -177,7 +179,7 @@ fun CalculatorScreenContent(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            AmountField(state, onAmountChange, onFieldFocusChanged)
+            AmountField(state, onAmountChange, onFieldFocusChanged, language)
             RateField(state, onRateChange, onFieldFocusChanged)
             ModeSelector(state.mode, onModeChange)
             ResultsBlock(state, onResultChange, onFieldFocusChanged, language)
@@ -214,17 +216,32 @@ private fun AmountField(
     state: CalculatorViewModel.UiState,
     onAmountChange: (String) -> Unit,
     onFieldFocusChanged: (CalculatorViewModel.Field, Boolean) -> Unit,
+    language: AppLanguage,
 ) {
     val label = when (state.mode) {
         VatMode.EXCLUSIVE -> R.string.label_amount_exclusive
         VatMode.INCLUSIVE -> R.string.label_amount_inclusive
     }
+    // Фокус нужен только для выбора режима отображения (сырой ввод или формат);
+    // семантика фокуса обрабатывается ViewModel через onFieldFocusChanged.
+    var focused by remember { mutableStateOf(false) }
+    val shown = if (focused) {
+        state.amountText
+    } else {
+        when (val parsed = AmountParser.AMOUNT.parse(state.amountText)) {
+            is ParsedInput.Valid -> MoneyFormatter.formatMoney(parsed.value, language)
+            else -> state.amountText
+        }
+    }
     OutlinedTextField(
-        value = state.amountText,
+        value = shown,
         onValueChange = onAmountChange,
         modifier = Modifier
             .fillMaxWidth()
-            .onFocusChanged { focused -> onFieldFocusChanged(CalculatorViewModel.Field.AMOUNT, focused.isFocused) },
+            .onFocusChanged { changed ->
+                focused = changed.isFocused
+                onFieldFocusChanged(CalculatorViewModel.Field.AMOUNT, changed.isFocused)
+            },
         label = { Text(appString(label)) },
         isError = state.amountError != null,
         supportingText = state.amountError?.let { error ->
