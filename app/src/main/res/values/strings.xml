@@ -1,3 +1,79 @@
 <resources>
     <string name="app_name">VAT Calculator</string>
+    <string name="screen_calculator">VAT Calculator</string>
+    <string name="screen_history">History</string>
+    <string name="screen_settings">Settings</string>
+    <string name="screen_about">About</string>
+
+    <string name="label_amount_exclusive">Amount excluding VAT</string>
+    <string name="label_amount_inclusive">Amount including VAT</string>
+    <string name="label_rate">VAT rate, %</string>
+    <string name="mode_add">Add VAT</string>
+    <string name="mode_extract">Remove VAT</string>
+
+    <string name="result_base">Excluding VAT</string>
+    <string name="result_vat">VAT</string>
+    <string name="result_total">Including VAT</string>
+    <string name="result_empty">—</string>
+
+    <string name="button_save">Save</string>
+    <string name="button_new_calculation">New calculation</string>
+    <string name="save_saved">Saved</string>
+    <string name="save_failed">Could not save; the input is kept</string>
+
+    <string name="error_too_long">No more than 64 characters</string>
+    <string name="error_wrong_format">Enter a number: digits and one decimal separator only</string>
+    <string name="error_grouping">Use spaces between thousands: 1 234.56</string>
+    <string name="error_precision_amount">No more than 2 decimal places</string>
+    <string name="error_precision_rate">No more than 4 decimal places</string>
+    <string name="error_range_amount">Enter a value from 0 to 999 999 999 999.99</string>
+    <string name="error_range_rate">The rate must be at least 0% and less than 100%</string>
+
+    <string name="discard_title">Discard changes?</string>
+    <string name="discard_text">Unsaved data of the current calculation will be lost. Saved history is not affected.</string>
+    <string name="discard_confirm">Discard</string>
+    <string name="discard_cancel">Cancel</string>
+
+    <string name="migration_prefs_title">Data transfer</string>
+    <string name="migration_from_22">Data transferred from version 2.2.</string>
+    <string name="migration_from_15">Data transferred from version 1.5.</string>
+    <string name="migration_amount_rounded">The amount was rounded to 2 decimal places.</string>
+    <string name="migration_rate_rounded">The rate was rounded to 4 decimal places.</string>
+    <string name="migration_amount_invalid">The transferred amount is invalid; enter it again.</string>
+    <string name="migration_rate_invalid">The transferred rate is invalid; enter it again.</string>
+    <string name="migration_mode_invalid">The transferred mode is invalid; select it again.</string>
+    <string name="migration_journal_title">History transfer</string>
+    <string name="migration_journal_summary">Imported: %1$d, rounded: %2$d, skipped: %3$d.</string>
+    <string name="migration_ok">Got it</string>
+
+    <string name="button_share">Share</string>
+    <string name="share_via">Share calculation</string>
+    <string name="share_no_app">No app available for sharing</string>
+    <string name="nav_back">Back</string>
+
+    <string name="settings_theme_label">Theme</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_language_label">Language</string>
+    <string name="settings_language_system">System</string>
+    <string name="settings_language_russian">Русский</string>
+    <string name="settings_language_english">English</string>
+
+    <string name="history_empty">No saved calculations yet</string>
+    <string name="history_back_to_calculator">Back to calculator</string>
+    <string name="history_delete">Delete</string>
+    <string name="history_delete_title">Delete entry?</string>
+    <string name="history_delete_text">The entry will be removed from the history.</string>
+    <string name="history_delete_failed">Could not delete the entry</string>
+    <string name="history_open_entry">Open entry</string>
+
+    <string name="about_version">Version: %1$s</string>
+    <string name="about_author">© 2026 Andrey Mishchenko</string>
+    <string name="about_site">Website</string>
+    <string name="about_feedback">Feedback</string>
+    <string name="about_privacy">Privacy policy</string>
+    <string name="about_feedback_subject">VAT Calculator (Android)</string>
+    <string name="external_no_browser">No browser app available</string>
+    <string name="external_no_email">No email app available</string>
 </resources>
