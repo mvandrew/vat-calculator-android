@@ -93,4 +93,72 @@ class VatCalculatorTest {
         }
         assertTrue(thrown)
     }
+
+    @Test
+    fun reverseFromBaseMatchesAddVatFormula() {
+        val result = VatCalculator.fromBase(BigDecimal("100"), BigDecimal("22"))
+        assertEquals("100.00", result.base.toPlainString())
+        assertEquals("22.00", result.vat.toPlainString())
+        assertEquals("122.00", result.total.toPlainString())
+    }
+
+    @Test
+    fun reverseFromTotalMatchesExtractVatFormula() {
+        val exact = VatCalculator.fromTotal(BigDecimal("122"), BigDecimal("22"))
+        assertEquals("100.00", exact.base.toPlainString())
+        assertEquals("22.00", exact.vat.toPlainString())
+        assertEquals("122.00", exact.total.toPlainString())
+        val rounded = VatCalculator.fromTotal(BigDecimal("100"), BigDecimal("20"))
+        assertEquals("83.33", rounded.base.toPlainString())
+        assertEquals("16.67", rounded.vat.toPlainString())
+        assertEquals("100.00", rounded.total.toPlainString())
+    }
+
+    @Test
+    fun reverseFromVatDerivesBaseAndTotal() {
+        val result = VatCalculator.fromVat(BigDecimal("22"), BigDecimal("22"))
+        assertEquals("100.00", result.base.toPlainString())
+        assertEquals("22.00", result.vat.toPlainString())
+        assertEquals("122.00", result.total.toPlainString())
+    }
+
+    @Test
+    fun reverseFromVatRoundsBaseHalfUp() {
+        val result = VatCalculator.fromVat(BigDecimal("0.01"), BigDecimal("20"))
+        assertEquals("0.05", result.base.toPlainString())
+        assertEquals("0.06", result.total.toPlainString())
+    }
+
+    @Test
+    fun reverseFromVatKeepsAnchorWithoutRoundingItAgain() {
+        // Прямой расчёт от 83.33 при 20% даёт НДС 16.67, но обратный от 16.67 —
+        // базу 83.35: якорь не пересчитывается, итог получается суммой B + V.
+        val result = VatCalculator.fromVat(BigDecimal("16.67"), BigDecimal("20"))
+        assertEquals("83.35", result.base.toPlainString())
+        assertEquals("16.67", result.vat.toPlainString())
+        assertEquals("100.02", result.total.toPlainString())
+        assertEquals(0, result.base.add(result.vat).compareTo(result.total))
+    }
+
+    @Test
+    fun reverseFromZeroRateKeepsBaseAndTotalEqual() {
+        val fromBase = VatCalculator.fromBase(BigDecimal("122"), BigDecimal("0"))
+        assertEquals("122.00", fromBase.base.toPlainString())
+        assertEquals("0.00", fromBase.vat.toPlainString())
+        assertEquals("122.00", fromBase.total.toPlainString())
+        val fromTotal = VatCalculator.fromTotal(BigDecimal("122"), BigDecimal("0"))
+        assertEquals("122.00", fromTotal.base.toPlainString())
+        assertEquals("0.00", fromTotal.vat.toPlainString())
+    }
+
+    @Test
+    fun reverseFromVatRequiresPositiveRate() {
+        var thrown = false
+        try {
+            VatCalculator.fromVat(BigDecimal("1"), BigDecimal("0"))
+        } catch (expected: IllegalArgumentException) {
+            thrown = true
+        }
+        assertTrue(thrown)
+    }
 }

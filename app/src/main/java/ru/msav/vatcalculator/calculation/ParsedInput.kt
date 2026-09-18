@@ -44,4 +44,10 @@ sealed interface ParseError {
 
     /** Выход за допустимый диапазон значений. */
     data object OutOfRange : ParseError
+
+    /**
+     * Ненулевой налог при нулевой ставке: обратный расчёт от НДС невозможен,
+     * поскольку при 0% налог всегда равен нулю (calculation.md §5.2).
+     */
+    data object VatAtZeroRate : ParseError
 }

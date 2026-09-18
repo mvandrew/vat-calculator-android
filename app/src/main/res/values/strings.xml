@@ -28,6 +28,7 @@
     <string name="error_precision_rate">No more than 4 decimal places</string>
     <string name="error_range_amount">Enter a value from 0 to 999 999 999 999.99</string>
     <string name="error_range_rate">The rate must be at least 0% and less than 100%</string>
+    <string name="error_vat_zero_rate">VAT is always zero at a 0% rate</string>
 
     <string name="discard_title">Discard changes?</string>
     <string name="discard_text">Unsaved data of the current calculation will be lost. Saved history is not affected.</string>
@@ -49,7 +50,10 @@
     <string name="button_share">Share</string>
     <string name="share_via">Share calculation</string>
     <string name="share_no_app">No app available for sharing</string>
-    <string name="nav_back">Back</string>
+    <string name="nav_open_history">Open history</string>
+    <string name="nav_more_options">More options</string>
+    <string name="nav_back_to_history">Back to history</string>
+    <string name="nav_back_to_calculator">Back to calculator</string>
 
     <string name="settings_theme_label">Theme</string>
     <string name="settings_theme_system">System</string>
@@ -67,6 +71,8 @@
     <string name="history_delete_text">The entry will be removed from the history.</string>
     <string name="history_delete_failed">Could not delete the entry</string>
     <string name="history_open_entry">Open entry</string>
+    <string name="history_edit">Edit</string>
+    <string name="calculator_edit_title">Edit calculation</string>
 
     <string name="about_version">Version: %1$s</string>
     <string name="about_author">© 2026 Andrey Mishchenko</string>

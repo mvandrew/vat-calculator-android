@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import ru.msav.vatcalculator.BuildConfig
 import ru.msav.vatcalculator.R
 import ru.msav.vatcalculator.ui.appString
+import ru.msav.vatcalculator.ui.components.AppTopBar
 
 /**
  * «О программе» (interface.md §4.3): название, фактическая версия сборки,
@@ -113,6 +113,13 @@ fun AboutScreenContent(
     Scaffold(
         modifier = modifier,
         contentWindowInsets = WindowInsets.safeDrawing,
+        topBar = {
+            AppTopBar(
+                title = appString(R.string.screen_about),
+                onBack = onBack,
+                backContentDescription = appString(R.string.nav_back_to_calculator),
+            )
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         Column(
@@ -124,7 +131,6 @@ fun AboutScreenContent(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            ScreenHeader(title = appString(R.string.screen_about), onBack = onBack)
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(text = appString(R.string.screen_calculator))
                 Text(text = appString(R.string.about_version, versionName))

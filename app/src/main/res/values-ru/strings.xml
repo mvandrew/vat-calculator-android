@@ -28,6 +28,7 @@
     <string name="error_precision_rate">Не больше четырёх знаков после разделителя</string>
     <string name="error_range_amount">Введите значение от 0 до 999 999 999 999,99</string>
     <string name="error_range_rate">Ставка должна быть от 0% до менее 100%</string>
+    <string name="error_vat_zero_rate">При ставке 0% НДС всегда равен нулю</string>
 
     <string name="discard_title">Сбросить изменения?</string>
     <string name="discard_text">Несохранённые данные текущего расчёта будут потеряны. Сохранённый журнал не затрагивается.</string>
@@ -49,7 +50,10 @@
     <string name="button_share">Поделиться</string>
     <string name="share_via">Поделиться расчётом</string>
     <string name="share_no_app">Нет приложения для отправки</string>
-    <string name="nav_back">Назад</string>
+    <string name="nav_open_history">Открыть журнал</string>
+    <string name="nav_more_options">Ещё</string>
+    <string name="nav_back_to_history">Назад в журнал</string>
+    <string name="nav_back_to_calculator">Назад к калькулятору</string>
 
     <string name="settings_theme_label">Тема</string>
     <string name="settings_theme_system">Системная</string>
@@ -67,6 +71,8 @@
     <string name="history_delete_text">Запись будет удалена из журнала.</string>
     <string name="history_delete_failed">Не удалось удалить запись</string>
     <string name="history_open_entry">Открыть запись</string>
+    <string name="history_edit">Редактировать</string>
+    <string name="calculator_edit_title">Редактирование расчёта</string>
 
     <string name="about_version">Версия: %1$s</string>
     <string name="about_author">© 2026 Андрей Мищенко</string>

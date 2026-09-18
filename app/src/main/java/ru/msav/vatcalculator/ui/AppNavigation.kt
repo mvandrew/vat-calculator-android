@@ -21,6 +21,9 @@ import ru.msav.vatcalculator.ui.theme.VATCalculatorTheme
  * журнал/настройки/о программе» с возвратом. Текущий экран переживает
  * поворот и пересоздание Activity (`rememberSaveable`); системный «Назад»
  * и кнопка возврата ведут к калькулятору, сохраняя форму (ViewModel жив).
+ * Открытие записи журнала включает сеанс редактирования на калькуляторе
+ * (заголовок с возвратом в журнал); системный «Назад» в сеансе возвращает
+ * в журнал, «Новый расчёт» завершает сеанс обычной стартовой формой.
  */
 enum class AppScreen { CALCULATOR, HISTORY, SETTINGS, ABOUT }
 
@@ -30,6 +33,7 @@ fun AppRoot(
     modifier: Modifier = Modifier,
 ) {
     val settings by viewModel.settingsState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val language = rememberAppLanguage(settings.languageSetting)
 
     VATCalculatorTheme(themeSetting = settings.themeSetting) {
@@ -38,6 +42,12 @@ fun AppRoot(
 
             if (currentScreen != AppScreen.CALCULATOR) {
                 BackHandler { currentScreen = AppScreen.CALCULATOR }
+            } else if (uiState.editingFromHistory) {
+                // Сеанс редактирования записи: системный «Назад» возвращает в журнал.
+                BackHandler {
+                    viewModel.exitEntryEditing()
+                    currentScreen = AppScreen.HISTORY
+                }
             }
 
             when (currentScreen) {
@@ -47,13 +57,22 @@ fun AppRoot(
                         onOpenHistory = { currentScreen = AppScreen.HISTORY },
                         onOpenSettings = { currentScreen = AppScreen.SETTINGS },
                         onOpenAbout = { currentScreen = AppScreen.ABOUT },
+                        onBackToHistory = {
+                            viewModel.exitEntryEditing()
+                            currentScreen = AppScreen.HISTORY
+                        },
                         modifier = modifier,
                     )
 
                 AppScreen.HISTORY ->
                     HistoryScreen(
                         viewModel = viewModel,
-                        onBack = { currentScreen = AppScreen.CALCULATOR },
+                        onBack = {
+                            // Выход из журнала завершает сеанс редактирования,
+                            // не затрагивая форму калькулятора.
+                            viewModel.exitEntryEditing()
+                            currentScreen = AppScreen.CALCULATOR
+                        },
                         onEntryOpened = { currentScreen = AppScreen.CALCULATOR },
                         modifier = modifier,
                     )

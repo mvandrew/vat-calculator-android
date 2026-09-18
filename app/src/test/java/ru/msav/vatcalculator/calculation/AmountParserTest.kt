@@ -9,6 +9,7 @@ class AmountParserTest {
 
     private fun amount(raw: String): ParsedInput = AmountParser.AMOUNT.parse(raw)
     private fun rate(raw: String): ParsedInput = AmountParser.RATE.parse(raw)
+    private fun result(raw: String): ParsedInput = AmountParser.RESULT.parse(raw)
 
     private fun assertInvalid(parsed: ParsedInput, error: ParseError) {
         assertTrue("expected Invalid but was $parsed", parsed is ParsedInput.Invalid)
@@ -91,5 +92,19 @@ class AmountParserTest {
         assertEquals(ParsedInput.Valid(BigDecimal("0.5")), AmountParser.AMOUNT.finalize(",5"))
         assertEquals(ParsedInput.Empty, AmountParser.AMOUNT.finalize(""))
         assertInvalid(AmountParser.RATE.finalize("100"), ParseError.OutOfRange)
+    }
+
+    @Test
+    fun resultFieldAllowsMaximumDisplayedTotal() {
+        assertEquals(ParsedInput.Valid(BigDecimal("1999998999998.98")), result("1 999 998 999 998,98"))
+        assertInvalid(result("2 000 000 000 000,00"), ParseError.OutOfRange)
+        assertInvalid(result("1,234"), ParseError.TooManyFractionDigits)
+    }
+
+    @Test
+    fun boundCheckAcceptsDerivedAmountsWithinRange() {
+        assertTrue(AmountParser.AMOUNT.isWithinBound(BigDecimal("999999999999.99")))
+        assertTrue(!AmountParser.AMOUNT.isWithinBound(BigDecimal("1000000000000")))
+        assertTrue(AmountParser.RESULT.isWithinBound(BigDecimal("1999998999999.98")))
     }
 }
