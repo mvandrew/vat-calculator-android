@@ -22,7 +22,9 @@ import ru.msav.vatcalculator.calculation.CalculatorEvaluation
 import ru.msav.vatcalculator.calculation.CalculatorEvaluator
 import ru.msav.vatcalculator.calculation.ParsedInput
 import ru.msav.vatcalculator.calculation.ParseError
+import ru.msav.vatcalculator.calculation.ResultField
 import ru.msav.vatcalculator.calculation.ShareTextBuilder
+import ru.msav.vatcalculator.calculation.VatCalculator
 import ru.msav.vatcalculator.calculation.VatMode
 import ru.msav.vatcalculator.calculation.VatResult
 import ru.msav.vatcalculator.storage.AppState
@@ -38,9 +40,11 @@ import java.math.BigDecimal
 
 /**
  * Экранное состояние калькулятора (interface.md §4.1). Владеет текстом ввода,
- * режимом, связью с записью журнала и результатами; расчёт выполняет ядро
- * фазы 03, хранение — фаза 04. Состояние формы автосохраняется с задержкой
- * (не на каждое нажатие); «Сохранить» относится только к записи журнала.
+ * режимом и источником расчёта — полем суммы или отредактированным итогом,
+ * от которого пересчитываются все суммы по ставке; связью с записью журнала
+ * и результатами. Расчёт выполняет ядро фазы 03, хранение — фаза 04. Состояние
+ * формы автосохраняется с задержкой (не на каждое нажатие); «Сохранить»
+ * относится только к записи журнала.
  *
  * Фаза 06: этот ViewModel — единственный владелец [AppStateStore] и потому
  * держит также настройки темы/языка (немедленное применение + запись) и
@@ -61,8 +65,20 @@ class CalculatorViewModel(
         val amountError: ParseError? = null,
         val rateError: ParseError? = null,
         val results: VatResult? = null,
+        /** Поле, от которого считается вся форма; правка суммы или ставки возвращает [Field.AMOUNT]. */
+        val source: Field = Field.AMOUNT,
+        /** Сырой текст редактируемого поля итога; заполняется при фокусе и правке. */
+        val resultEditText: String? = null,
+        /** Ошибка редактируемого поля итога (interface.md §4.1). */
+        val resultError: ParseError? = null,
         val canSave: Boolean = false,
         val openEntryId: Long? = null,
+        /**
+         * Сеанс редактирования записи, открытой из журнала: на калькуляторе
+         * виден заголовок с кнопкой возврата в журнал. Не сохраняется между
+         * запусками — на холодном старте всегда обычная форма.
+         */
+        val editingFromHistory: Boolean = false,
         val hasUnsavedChanges: Boolean = false,
         val saveNotice: SaveNotice? = null,
         val confirmDiscard: Boolean = false,
@@ -134,17 +150,35 @@ class CalculatorViewModel(
         }
     }
 
+    /** Правка суммы возвращает расчёт от пары «сумма + ставка» (interface.md §4.1). */
     fun onAmountChange(raw: String) {
         if (!CalculatorInputFilter.isAcceptable(raw)) return
-        updateForm { it.copy(amountText = raw) }
+        updateForm { it.copy(amountText = raw, source = Field.AMOUNT, resultEditText = null, resultError = null) }
     }
 
+    /** Правка ставки возвращает расчёт от пары «сумма + ставка». */
     fun onRateChange(raw: String) {
         if (!CalculatorInputFilter.isAcceptable(raw)) return
-        updateForm { it.copy(rateText = raw) }
+        updateForm { it.copy(rateText = raw, source = Field.AMOUNT, resultEditText = null, resultError = null) }
     }
 
-    /** Переключение режима сохраняет введённое число, завершая промежуточный ввод. */
+    /**
+     * Правка поля итога: все суммы пересчитываются от введённого значения по
+     * выбранной ставке; сама ставка не меняется. Отредактированное поле
+     * становится источником до следующей правки суммы или ставки.
+     */
+    fun onResultFieldChange(field: Field, raw: String) {
+        if (field.resultField == null) return
+        if (!CalculatorInputFilter.isAcceptable(raw)) return
+        updateForm { it.copy(source = field, resultEditText = raw) }
+    }
+
+    /**
+     * Переключение режима сохраняет введённые числа, завершая промежуточный
+     * ввод. При источнике-итоге три суммы не пересчитываются (обратный расчёт
+     * от режима не зависит) — пересинхронизируется только поле суммы:
+     * при начислении это база, при выделении — итог (interface.md §4.1).
+     */
     fun onModeChange(mode: VatMode) {
         if (mode == uiStateFlow.value.mode) return
         updateForm { state ->
@@ -152,17 +186,32 @@ class CalculatorViewModel(
                 mode = mode,
                 amountText = finalized(state.amountText, AmountParser.AMOUNT),
                 rateText = finalized(state.rateText, AmountParser.RATE),
+                resultEditText = state.resultEditText?.let { finalized(it, AmountParser.RESULT) },
             )
         }
     }
 
-    /** Потеря фокуса завершает редактирование поля: `12,` трактуется как `12`. */
+    /**
+     * Фокус поля итога делает его источником расчёта и засевает текст текущим
+     * значением без группировки. Потеря фокуса завершает редактирование
+     * любого поля: `12,` трактуется как `12`.
+     */
     fun onFieldFocusChanged(field: Field, focused: Boolean) {
-        if (focused) return
+        if (focused) {
+            if (field.resultField != null) {
+                updateForm { state ->
+                    state.copy(source = field, resultEditText = seededResultText(state, field))
+                }
+            }
+            return
+        }
         updateForm { state ->
             when (field) {
                 Field.AMOUNT -> state.copy(amountText = finalized(state.amountText, AmountParser.AMOUNT))
                 Field.RATE -> state.copy(rateText = finalized(state.rateText, AmountParser.RATE))
+                else -> state.copy(
+                    resultEditText = state.resultEditText?.let { finalized(it, AmountParser.RESULT) },
+                )
             }
         }
     }
@@ -247,6 +296,27 @@ class CalculatorViewModel(
         uiStateFlow.value = uiStateFlow.value.copy(shareText = null)
     }
 
+    /**
+     * «Поделиться» записью журнала (interface.md §7): текст строится из самой
+     * записи тем же шаблоном фазы 03; текущая форма не загружается и не
+     * пересчитывается. Язык вывода разрешает UI-слой и передаёт сюда.
+     */
+    fun shareEntry(entry: HistoryEntry, language: AppLanguage) {
+        val input = CalculationInput(entry.amount, entry.rate, entry.mode)
+        uiStateFlow.value = uiStateFlow.value.copy(
+            shareText = ShareTextBuilder.build(input, VatCalculator.calculate(input), language),
+        )
+    }
+
+    /**
+     * Выход из сеанса редактирования записи журнала без сброса формы
+     * (симметрично возврату из журнала, interface.md §4.4): поля и
+     * несохранённые изменения сохраняются, кнопка возврата в журнал исчезает.
+     */
+    fun exitEntryEditing() {
+        uiStateFlow.value = uiStateFlow.value.copy(editingFromHistory = false)
+    }
+
     /** Настройки: немедленное применение ко всем экранам и запись в хранилище. */
     fun onThemeChange(setting: ThemeSetting) {
         themeSetting = setting
@@ -268,13 +338,16 @@ class CalculatorViewModel(
     /**
      * Клик по записи журнала: при несохранённых изменениях текущей формы —
      * подтверждение (interface.md §4.4), иначе запись сразу загружается.
+     * Возвращает true, если запись открыта немедленно и навигация может
+     * показать форму редактирования; false — показан диалог подтверждения.
      */
-    fun onHistoryEntryClick(entry: HistoryEntry) {
+    fun onHistoryEntryClick(entry: HistoryEntry): Boolean {
         if (uiStateFlow.value.hasUnsavedChanges) {
             uiStateFlow.value = uiStateFlow.value.copy(confirmOpenEntry = entry)
-        } else {
-            openEntry(entry)
+            return false
         }
+        openEntry(entry)
+        return true
     }
 
     fun confirmOpenEntry() {
@@ -305,7 +378,10 @@ class CalculatorViewModel(
                 // Удаление открытой записи: поля остаются, связь с ID снимается —
                 // следующее сохранение создаст новую запись (interface.md §4.4).
                 if (uiStateFlow.value.openEntryId == id) {
-                    uiStateFlow.value = uiStateFlow.value.copy(openEntryId = null)
+                    uiStateFlow.value = uiStateFlow.value.copy(
+                        openEntryId = null,
+                        editingFromHistory = false,
+                    )
                     baseline = snapshot()
                     refreshUnsavedFlag()
                 }
@@ -339,12 +415,15 @@ class CalculatorViewModel(
             mode = entry.mode,
             openEntryId = entry.id,
         )
+        uiStateFlow.value = uiStateFlow.value.copy(editingFromHistory = true)
         baseline = snapshot()
         refreshUnsavedFlag()
     }
 
+    /** «Новый расчёт» завершает и сеанс редактирования из журнала (interface.md §4.1). */
     private fun resetForm() {
         applyForm("", "22", VatMode.INCLUSIVE, openEntryId = null)
+        uiStateFlow.value = uiStateFlow.value.copy(editingFromHistory = false)
         baseline = snapshot()
         uiStateFlow.value = uiStateFlow.value.copy(saveNotice = null)
         refreshUnsavedFlag()
@@ -381,6 +460,9 @@ class CalculatorViewModel(
                 rateText = rateText,
                 mode = mode,
                 openEntryId = openEntryId,
+                source = Field.AMOUNT,
+                resultEditText = null,
+                resultError = null,
             ),
         )
         refreshUnsavedFlag()
@@ -391,22 +473,45 @@ class CalculatorViewModel(
         refreshUnsavedFlag()
     }
 
-    /** Завершение промежуточного ввода обоих полей без изменения трактовки режима. */
+    /** Завершение промежуточного ввода всех полей без изменения трактовки режима. */
     private fun finalizeInput(state: UiState): UiState = evaluated(
         state.copy(
             amountText = finalized(state.amountText, AmountParser.AMOUNT),
             rateText = finalized(state.rateText, AmountParser.RATE),
+            resultEditText = state.resultEditText?.let { finalized(it, AmountParser.RESULT) },
         ),
     )
 
     private fun evaluated(state: UiState): UiState {
-        val evaluation: CalculatorEvaluation =
-            CalculatorEvaluator.evaluate(state.amountText, state.rateText, state.mode)
+        if (state.source.resultField == null) {
+            val evaluation: CalculatorEvaluation =
+                CalculatorEvaluator.evaluate(state.amountText, state.rateText, state.mode)
+            return state.copy(
+                amountError = (evaluation.amountState as? ParsedInput.Invalid)?.error,
+                rateError = (evaluation.rateState as? ParsedInput.Invalid)?.error,
+                resultError = null,
+                results = (evaluation.outcome as? CalculatorEvaluation.Outcome.Ready)?.result,
+                canSave = evaluation.isShareReady,
+            )
+        }
+        val evaluation = CalculatorEvaluator.evaluateResult(
+            source = state.source.resultField,
+            resultText = state.resultEditText.orEmpty(),
+            rateText = state.rateText,
+            mode = state.mode,
+            amountText = state.amountText,
+        )
+        val ready = evaluation.outcome as? CalculatorEvaluation.Outcome.Ready
+        // Сумма — производная величина: при начислении это база, при выделении — итог.
+        // Пустой или ошибочный итог не определяет сумму, прежнее значение сохраняется.
+        val derivedAmountText = ready?.input?.amount?.stripTrailingZeros()?.toPlainString()
         return state.copy(
-            amountError = (evaluation.amountState as? ParsedInput.Invalid)?.error,
+            amountError = null,
             rateError = (evaluation.rateState as? ParsedInput.Invalid)?.error,
-            results = (evaluation.outcome as? CalculatorEvaluation.Outcome.Ready)?.result,
-            canSave = evaluation.isShareReady,
+            resultError = evaluation.resultError,
+            results = ready?.result,
+            canSave = ready != null && evaluation.isCommitted,
+            amountText = derivedAmountText ?: state.amountText,
         )
     }
 
@@ -424,6 +529,17 @@ class CalculatorViewModel(
             else -> return raw
         }
         return value.ifEmpty { raw }
+    }
+
+    /** Посев текста редактируемого итога: текущее значение без группировки разрядов. */
+    private fun seededResultText(state: UiState, field: Field): String {
+        val value = when (field.resultField) {
+            ResultField.BASE -> state.results?.base
+            ResultField.VAT -> state.results?.vat
+            ResultField.TOTAL -> state.results?.total
+            null -> null
+        }
+        return value?.stripTrailingZeros()?.toPlainString().orEmpty()
     }
 
     private fun evaluationAmount(state: UiState): BigDecimal? =
@@ -475,7 +591,14 @@ class CalculatorViewModel(
         }
     }
 
-    enum class Field { AMOUNT, RATE }
+    /** Поле формы; BASE/VAT/TOTAL дополнительно являются источниками обратного расчёта. */
+    enum class Field(val resultField: ResultField?) {
+        AMOUNT(null),
+        RATE(null),
+        BASE(ResultField.BASE),
+        VAT(ResultField.VAT),
+        TOTAL(ResultField.TOTAL),
+    }
 
     companion object {
         private const val AUTOSAVE_DELAY_MS = 500L

@@ -2,7 +2,6 @@ package ru.msav.vatcalculator.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,13 +10,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -27,6 +24,7 @@ import ru.msav.vatcalculator.R
 import ru.msav.vatcalculator.storage.LanguageSetting
 import ru.msav.vatcalculator.storage.ThemeSetting
 import ru.msav.vatcalculator.ui.appString
+import ru.msav.vatcalculator.ui.components.AppTopBar
 
 /**
  * Настройки (interface.md §4.2): тема и язык. Выбор применяется немедленно
@@ -62,6 +60,13 @@ fun SettingsScreenContent(
     Scaffold(
         modifier = modifier,
         contentWindowInsets = WindowInsets.safeDrawing,
+        topBar = {
+            AppTopBar(
+                title = appString(R.string.screen_settings),
+                onBack = onBack,
+                backContentDescription = appString(R.string.nav_back_to_calculator),
+            )
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -72,8 +77,6 @@ fun SettingsScreenContent(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            ScreenHeader(title = appString(R.string.screen_settings), onBack = onBack)
-
             Text(appString(R.string.settings_theme_label))
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                 val options = listOf(
@@ -110,14 +113,5 @@ fun SettingsScreenContent(
                 }
             }
         }
-    }
-}
-
-/** Заголовок подсcreenа с кнопкой возврата; подпись кнопки локализована. */
-@Composable
-internal fun ScreenHeader(title: String, onBack: () -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(text = title, style = MaterialTheme.typography.titleLarge)
-        TextButton(onClick = onBack) { Text(appString(R.string.nav_back)) }
     }
 }

@@ -100,6 +100,12 @@ class AmountParser(private val spec: ParseSpec) {
         return if (spec.upperBoundInclusive) comparison > 0 else comparison >= 0
     }
 
+    /**
+     * Проверка значения против верхней границы спецификации. Используется для
+     * производных величин, не прошедших разбор поля (обратный расчёт, §5.2).
+     */
+    fun isWithinBound(value: BigDecimal): Boolean = !isAboveUpperBound(value)
+
     private fun validateGroups(intPart: String): Boolean {
         if (!intPart.contains(GROUP_MARKER)) return true
         val groups = intPart.split(GROUP_MARKER)
@@ -137,6 +143,20 @@ class AmountParser(private val spec: ParseSpec) {
                 maxFractionDigits = 4,
                 upperBound = BigDecimal("100"),
                 upperBoundInclusive = false,
+            ),
+        )
+
+        /**
+         * Поле итога (без НДС / НДС / с НДС): 0..1 999 999 999 999,99, не более
+         * двух дробных знаков. Результаты вправе превышать предел поля ввода
+         * суммы (максимум начисления §5.2), поэтому граница выше; производная
+         * сумма дополнительно проверяется пределом поля ввода.
+         */
+        val RESULT = AmountParser(
+            ParseSpec(
+                maxFractionDigits = 2,
+                upperBound = BigDecimal("1999999999999.99"),
+                upperBoundInclusive = true,
             ),
         )
     }

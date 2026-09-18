@@ -37,6 +37,31 @@ data class CalculatorEvaluation(
 }
 
 /**
+ * Источник обратного расчёта: поле итога, отредактированное пользователем.
+ * Ставка всегда берётся из поля ставки и не пересчитывается.
+ */
+enum class ResultField {
+    BASE,
+    VAT,
+    TOTAL,
+}
+
+/**
+ * Результат обратной оценки формы калькулятора: пересчёт от отредактированного
+ * итога по выбранной ставке. Ошибки редактируемого поля передаются через
+ * [resultError] (разбор, диапазон производной суммы или невозможный налог при
+ * нулевой ставке); [outcome] при этом не содержит актуального результата.
+ */
+data class ReverseEvaluation(
+    val rateState: ParsedInput,
+    val resultState: ParsedInput,
+    val resultError: ParseError?,
+    val outcome: CalculatorEvaluation.Outcome,
+    /** true, когда ставка и итог завершены (нет промежуточных форм `12,`/`,5`). */
+    val isCommitted: Boolean,
+)
+
+/**
  * Оценка формы: разбор текста полей и расчёт без кнопки «Рассчитать».
  * Один и тот же результат используется экраном, сохранением и отправкой.
  */
@@ -67,6 +92,87 @@ object CalculatorEvaluator {
             }
         }
         return CalculatorEvaluation(amountState, rateState, outcome, isCommitted)
+    }
+
+    /**
+     * Обратная оценка: все суммы пересчитываются от отредактированного итога
+     * [source] по ставке из поля ставки (calculation.md §5.2). Режим задаёт
+     * только поле, с которым синхронизируется сумма: при начислении это база,
+     * при выделении — итог; сам пересчёт от режима не зависит.
+     *
+     * Особый случай — налог при нулевой ставке: ненулевой `V` невозможен
+     * (ошибка [ParseError.VatAtZeroRate]), нулевой не определяет базу, и расчёт
+     * выполняется прямо от текущей суммы. Производная сумма не может превышать
+     * предел поля ввода — иначе запись и отправка состояния были бы невозможны.
+     */
+    fun evaluateResult(
+        source: ResultField,
+        resultText: String,
+        rateText: String,
+        mode: VatMode,
+        amountText: String,
+    ): ReverseEvaluation {
+        val rateState = AmountParser.RATE.parse(rateText)
+        val resultState = AmountParser.RESULT.parse(resultText)
+        val isCommitted = rateState is ParsedInput.Valid && resultState is ParsedInput.Valid
+
+        var resultError: ParseError? = null
+        val outcome: CalculatorEvaluation.Outcome = when {
+            rateState is ParsedInput.Invalid ->
+                CalculatorEvaluation.Outcome.Error(CalculatorEvaluation.Field.RATE, rateState.error)
+
+            resultState is ParsedInput.Invalid -> {
+                resultError = resultState.error
+                CalculatorEvaluation.Outcome.Empty
+            }
+
+            rateState is ParsedInput.Empty || resultState is ParsedInput.Empty ->
+                CalculatorEvaluation.Outcome.Empty
+
+            else -> {
+                val rate = rateState.valueOrThrow()
+                val value = resultState.valueOrThrow()
+                if (source == ResultField.VAT && rate.signum() == 0) {
+                    if (value.signum() != 0) {
+                        resultError = ParseError.VatAtZeroRate
+                        CalculatorEvaluation.Outcome.Empty
+                    } else {
+                        amountForwardOutcome(rate, mode, amountText)
+                    }
+                } else {
+                    val result = when (source) {
+                        ResultField.BASE -> VatCalculator.fromBase(value, rate)
+                        ResultField.VAT -> VatCalculator.fromVat(value, rate)
+                        ResultField.TOTAL -> VatCalculator.fromTotal(value, rate)
+                    }
+                    val amount = if (mode == VatMode.EXCLUSIVE) result.base else result.total
+                    if (!AmountParser.AMOUNT.isWithinBound(amount)) {
+                        resultError = ParseError.OutOfRange
+                        CalculatorEvaluation.Outcome.Empty
+                    } else {
+                        CalculatorEvaluation.Outcome.Ready(
+                            CalculationInput(amount, rate, mode),
+                            result,
+                        )
+                    }
+                }
+            }
+        }
+        return ReverseEvaluation(rateState, resultState, resultError, outcome, isCommitted)
+    }
+
+    /** Нулевой налог при нулевой ставке не определяет базу: прямой расчёт от суммы. */
+    private fun amountForwardOutcome(
+        rate: BigDecimal,
+        mode: VatMode,
+        amountText: String,
+    ): CalculatorEvaluation.Outcome {
+        val amountState = AmountParser.AMOUNT.finalize(amountText)
+        if (amountState !is ParsedInput.Valid) {
+            return CalculatorEvaluation.Outcome.Empty
+        }
+        val input = CalculationInput(amountState.value, rate, mode)
+        return CalculatorEvaluation.Outcome.Ready(input, VatCalculator.calculate(input))
     }
 
     private fun ParsedInput.valueOrThrow(): BigDecimal = when (this) {

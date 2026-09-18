@@ -91,6 +91,13 @@ build/
 *.keystore
 keystore.properties
 
+# Секреты и сервисные ключи (не коммитятся)
+.env*
+*.pem
+*.p12
+*.pfx
+google-services.json
+
 # Kotlin build-кэш
 .kotlin/
 
